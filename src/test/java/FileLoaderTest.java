@@ -18,15 +18,27 @@ public class FileLoaderTest {
     public void testProcess() throws Exception {
 
 
-        URL testFile = getClass().getResource("/uk-500.zip");
+        URL testFile = getClass().getResource("/uk-500.csv");
 
         InputStream inputStream = testFile.openStream();
 
-        Collection<InputStream> inputStreams = Collections.singletonList(inputStream);
+        FileLoader fl = new FileLoader();
+
+        fl.process(inputStream, System.out, testFile.getFile());
+
+    }
+
+    @Test
+    public void testProcess2() throws Exception {
+
+
+        URL testFile = getClass().getResource("/csv_no_string_escape.csv");
+
+        InputStream inputStream = testFile.openStream();
 
         FileLoader fl = new FileLoader();
 
-        fl.process(inputStreams, System.out);
+        fl.process(inputStream, System.out, testFile.getFile());
 
     }
 }
