@@ -1,6 +1,7 @@
-package uk.org.richardjarvis.processor.text;
+package uk.org.richardjarvis.metadata;
 
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.processor.text.TextProcessor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class CSVProperties {
 
     public CSVProperties(InputStream inputStream) throws IOException {
         getCSVProperties(inputStream);
+        inputStream.reset();
     }
 
     @Override
@@ -70,17 +72,24 @@ public class CSVProperties {
         int i = 0;
         while (i < TextProcessor.MAX_ROWS_TO_PROCESS) {
 
-            Map<Character, Integer> frequencyTable = getFrequencyTable(reader.readLine(), stringEscape);
+            String nextLine = reader.readLine();
+            if (nextLine == null)
+                break;
 
-            Set<Character> newCandidates = new HashSet<>();
+            Map<Character, Integer> frequencyTable = getFrequencyTable(nextLine, stringEscape);
 
-            for (Character character : candidates) {
-                if (frequencyTable.get(character) == firstLineFrequencyTable.get(character)) {
-                    newCandidates.add(character);
+            if (frequencyTable != null) {
+                Set<Character> newCandidates = new HashSet<>();
+
+                for (Character character : candidates) {
+                    if (frequencyTable.get(character) == firstLineFrequencyTable.get(character)) {
+                        newCandidates.add(character);
+                    }
                 }
+
+                candidates = newCandidates;
             }
 
-            candidates = newCandidates;
             i++;
         }
         inputStream.reset();
@@ -104,24 +113,29 @@ public class CSVProperties {
 
     private Map<Character, Integer> getFrequencyTable(String text, Character stringEscape) {
 
-        Map<Character, Integer> frequencyTable = new HashMap<>();
-        boolean insideString = false;
+        Map<Character, Integer> frequencyTable = null;
 
-        for (int i = 0; i < text.length(); i++) {
+        if (text != null) {
 
-            Character c = text.charAt(i);
-            if (c == stringEscape) {
-                insideString = !insideString;
-            } else {
+            frequencyTable = new HashMap<>();
+            boolean insideString = false;
 
-                if (!insideString) {
-                    Integer count = frequencyTable.get(c);
-                    if (count == null) {
-                        count = 1;
-                    } else {
-                        count++;
+            for (int i = 0; i < text.length(); i++) {
+
+                Character c = text.charAt(i);
+                if (c == stringEscape) {
+                    insideString = !insideString;
+                } else {
+
+                    if (!insideString) {
+                        Integer count = frequencyTable.get(c);
+                        if (count == null) {
+                            count = 1;
+                        } else {
+                            count++;
+                        }
+                        frequencyTable.put(c, count);
                     }
-                    frequencyTable.put(c, count);
                 }
             }
         }

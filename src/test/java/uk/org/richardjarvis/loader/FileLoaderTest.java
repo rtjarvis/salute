@@ -1,3 +1,5 @@
+package uk.org.richardjarvis.loader;
+
 import org.junit.Test;
 import uk.org.richardjarvis.loader.FileLoader;
 

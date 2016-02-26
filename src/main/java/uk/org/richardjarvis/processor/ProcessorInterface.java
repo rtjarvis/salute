@@ -1,5 +1,7 @@
 package uk.org.richardjarvis.processor;
 
+import uk.org.richardjarvis.metadata.MetaData;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,6 +11,6 @@ import java.io.OutputStream;
  */
 public interface ProcessorInterface {
 
-    public boolean process(InputStream inputStream, OutputStream outputStream) throws IOException;
+    public MetaData process(InputStream inputStream, OutputStream outputStream) throws IOException;
 
 }

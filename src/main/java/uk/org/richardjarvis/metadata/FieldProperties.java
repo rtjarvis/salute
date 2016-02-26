@@ -1,9 +1,9 @@
-package uk.org.richardjarvis.processor.text;
+package uk.org.richardjarvis.metadata;
 
 /**
  * Created by rjarvis on 24/02/16.
  */
-public class FieldProperties {
+public class FieldProperties  implements MetaData{
 
     String name;
     int maxLength = Integer.MIN_VALUE;

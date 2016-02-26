@@ -10,6 +10,7 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.processor.text.TextProcessor;
@@ -72,13 +73,9 @@ public class FileLoader {
             }
 
             if (processor != null) {
-                boolean result = processor.process(inputFileStream, outputStream);
-                if (result) {
-                    LOGGER.info("Processing file SUCCESS");
-                    return true;
-                } else {
-                    LOGGER.info("Processing file FAILURE");
-                }
+                MetaData result = processor.process(inputFileStream, outputStream);
+                LOGGER.info("Processing file SUCCESS");
+                return true;
             }
 
         }
