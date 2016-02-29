@@ -1,5 +1,7 @@
 package uk.org.richardjarvis.processor;
 
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.SQLContext;
 import uk.org.richardjarvis.metadata.MetaData;
 
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.io.OutputStream;
  */
 public interface ProcessorInterface {
 
-    public MetaData process(InputStream inputStream, OutputStream outputStream) throws IOException;
+    public MetaData extractMetaData(String path) throws IOException;
+
+    public DataFrame extractData(String path, MetaData metaData, SQLContext sqlContext) throws IOException;
 
 }

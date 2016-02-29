@@ -1,5 +1,6 @@
 package uk.org.richardjarvis.loader;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import uk.org.richardjarvis.loader.FileLoader;
 
@@ -19,28 +20,30 @@ public class FileLoaderTest {
     @Test
     public void testProcess() throws Exception {
 
+        String outputDir = "/tmp/test.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
 
         URL testFile = getClass().getResource("/uk-500.csv");
 
-        InputStream inputStream = testFile.openStream();
-
         FileLoader fl = new FileLoader();
 
-        fl.process(inputStream, System.out, testFile.getFile());
+        fl.process(testFile.getPath(), outputDir);
 
     }
 
     @Test
     public void testProcess2() throws Exception {
 
+        String outputDir = "/tmp/test.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
 
         URL testFile = getClass().getResource("/csv_no_string_escape.csv");
 
-        InputStream inputStream = testFile.openStream();
-
         FileLoader fl = new FileLoader();
 
-        fl.process(inputStream, System.out, testFile.getFile());
+        fl.process(testFile.getPath(), outputDir);
 
     }
 }

@@ -1,5 +1,8 @@
 package uk.org.richardjarvis.metadata;
 
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
+
 import java.util.List;
 
 /**
@@ -10,12 +13,20 @@ public class TabularMetaData  implements MetaData{
     private List<FieldProperties> fieldPropertiesList;
     private CSVProperties csvProperties;
     private String name;
+    private boolean hasHeader;
+
+    public boolean hasHeader() {
+        return hasHeader;
+    }
+
+    public void setHasHeader(boolean hasHeader) {
+        this.hasHeader = hasHeader;
+    }
 
     public TabularMetaData(CSVProperties csvProperties, List<FieldProperties> fieldPropertiesList) {
         this.csvProperties=csvProperties;
         this.fieldPropertiesList=fieldPropertiesList;
     }
-
 
     public CSVProperties getCsvProperties() {
         return csvProperties;
@@ -41,6 +52,13 @@ public class TabularMetaData  implements MetaData{
         this.name = name;
     }
 
+    public FieldProperties getFieldProperty(int index) {
+        if (fieldPropertiesList==null)
+            return null;
+
+        return fieldPropertiesList.get(index);
+    }
+
     @Override
     public String toString() {
 
@@ -52,6 +70,17 @@ public class TabularMetaData  implements MetaData{
         }
 
         return sb.toString();
+    }
+
+    public StructType getStructType() {
+
+        StructField[] fields = new StructField[fieldPropertiesList.size()];
+
+        for (int fieldIndex=0; fieldIndex< fields.length; fieldIndex++) {
+            fields[fieldIndex] = fieldPropertiesList.get(fieldIndex).getStructField();
+        }
+
+        return new StructType(fields);
     }
 
 }

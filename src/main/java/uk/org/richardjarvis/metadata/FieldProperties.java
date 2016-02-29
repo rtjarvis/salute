@@ -1,31 +1,41 @@
 package uk.org.richardjarvis.metadata;
 
+import org.apache.spark.sql.types.*;
+
 /**
  * Created by rjarvis on 24/02/16.
  */
-public class FieldProperties  implements MetaData{
+public class FieldProperties implements MetaData {
 
-    String name;
-    int maxLength = Integer.MIN_VALUE;
-    int minLength = Integer.MAX_VALUE;
-    int count = 0;
-    long totalChars;
-    Boolean isInteger = true;
-    Boolean isDecimal = true;
-    int uniqueValues = 0;
+    private String name;
+    private int maxLength = Integer.MIN_VALUE;
+    private int minLength = Integer.MAX_VALUE;
+    private int count = 0;
+    private long totalChars;
+    private Boolean isNullable=true;
+
+    public Boolean getNullable() {
+        return isNullable;
+    }
+
+    private DataType type;
+    private int uniqueValues = 0;
 
     public FieldProperties(String value) {
 
         update(value);
     }
 
+    public DataType getType() {
+
+        return type;
+    }
+
     @Override
     public String toString() {
         return "FieldProperties{" +
                 "name='" + name + '\'' +
-                ", isString=" + isString() +
-                ", isDecimal=" + isDecimal() +
-                ", isInteger=" + isInteger() +
+                ", type=" + type.toString() +
                 ", minLength=" + minLength +
                 ", maxLength=" + maxLength +
                 '}';
@@ -33,6 +43,10 @@ public class FieldProperties  implements MetaData{
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getMaxLength() {
@@ -47,18 +61,6 @@ public class FieldProperties  implements MetaData{
         return minLength;
     }
 
-    public Boolean isInteger() {
-        return isInteger;
-    }
-
-    public Boolean isDecimal() {
-        return isDecimal;
-    }
-
-    public Boolean isString() {
-        return !(isInteger  || isDecimal);
-    }
-
     public void update(String value) {
 
         count++;
@@ -70,19 +72,41 @@ public class FieldProperties  implements MetaData{
         if (value.length() < minLength)
             minLength = value.length();
 
-        if (isInteger == null || (isInteger && !isDecimal)) {
-            isInteger = value.matches("^[0-9]*$");
-
+        if (type == null || type == DataTypes.IntegerType) {
+            if (value.matches("^[0-9]*$")) {
+                type = DataTypes.IntegerType;
+            } else {
+                type = DataTypes.StringType;
+            }
         }
 
-        if (isDecimal == null || isDecimal) {
-            isDecimal = value.matches("^[0-9]*\\.[0-9]+$");
+        if (type == null || type == DataTypes.DoubleType) {
+            if (value.matches("^[0-9]*\\.[0-9]+$")) {
+                type = DataTypes.DoubleType;
+            } else {
+                type = DataTypes.StringType;
+            }
         }
+
 
     }
 
+    public Object convertToType(String value) {
+//        switch (type) {
+//            case DataTypes.DoubleType:
+//                return Double.parseDouble(value);
+//            case INTEGER:
+//                return Integer.parseInt(value);
+//            case STRING:
+//                return value;
+//            default:
+                return value;
+//        }
+    }
 
-    public void setName(String name) {
-        this.name = name;
+    public StructField getStructField() {
+
+         return new StructField(getName(), getType(), getNullable(), Metadata.empty());
+
     }
 }

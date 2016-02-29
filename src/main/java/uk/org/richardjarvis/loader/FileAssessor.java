@@ -25,7 +25,7 @@ public class FileAssessor {
         if ("application/x-bzip,application/x-bzip2,application/gzip,application/x-gzip,application/x-xz".contains(streamType))
             return FileType.COMPRESSED;
 
-        if ("text/plain".contains(streamType))
+        if ("text/plain,text/csv".contains(streamType))
             return FileType.TEXT;
 
         return FileType.UNKNOWN;

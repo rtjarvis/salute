@@ -7,17 +7,19 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.SQLContext;
 import org.apache.tika.Tika;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.richardjarvis.metadata.MetaData;
-import uk.org.richardjarvis.processor.image.ImageProcessor;
 import uk.org.richardjarvis.processor.ProcessorInterface;
-import uk.org.richardjarvis.processor.text.TextProcessor;
+import uk.org.richardjarvis.processor.image.ImageProcessor;
+import uk.org.richardjarvis.processor.text.TabularProcessor;
+import uk.org.richardjarvis.utils.SparkProvider;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,30 +31,40 @@ public class FileLoader {
     private static Logger LOGGER = LoggerFactory.getLogger(FileLoader.class);
 
     Tika tika;
+    SQLContext sqlContext;
+
+    public static void main(String[] args) throws CompressorException, ArchiveException, JSONException, IOException {
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(args[0], args[1]);
+
+    }
 
     public FileLoader() {
         this.tika = new Tika();
+        this.sqlContext = SparkProvider.getSQLContext();
     }
 
-    public boolean process(InputStream inputFileStream, OutputStream outputStream, String inputName) throws IOException, CompressorException, ArchiveException {
+    public boolean process(String inputPath, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
 
-        LOGGER.info("Processing file : " + inputName);
+        LOGGER.info("Processing file : " + inputPath);
 
-        String streamType = getType(inputFileStream);
+        String streamType = getType(inputPath);
 
         LOGGER.info("Detected stream as: " + streamType);
 
         if (FileAssessor.isArchive(streamType)) {
             LOGGER.info("Stream is archive. Processing archive");
-            List<ArchiveEntry> unpackedEntries = unpack(inputFileStream);
+            List<ArchiveEntry> unpackedEntries = unpack(inputPath);
             LOGGER.info("Packed File contained " + unpackedEntries.size() + " child streams.");
-            return process(unpackedEntries, outputStream);
+            return process(unpackedEntries, outputPath);
 
         } else {
 
             if (FileAssessor.isCompressed(streamType)) {
                 LOGGER.info("Stream compressed. Removing compression");
-                inputFileStream = removeCompression(inputFileStream);
+                inputPath = removeCompression(inputPath);
             }
 
             ProcessorInterface processor = null;
@@ -60,7 +72,7 @@ public class FileLoader {
             switch (FileAssessor.getType(streamType)) {
                 case TEXT:
                     LOGGER.info("Processing file as text");
-                    processor = new TextProcessor();
+                    processor = new TabularProcessor();
                     break;
                 case IMAGE:
                     LOGGER.info("Processing file as an image");
@@ -73,45 +85,65 @@ public class FileLoader {
             }
 
             if (processor != null) {
-                MetaData result = processor.process(inputFileStream, outputStream);
-                LOGGER.info("Processing file SUCCESS");
+
+                MetaData metaData = processor.extractMetaData(inputPath);
+                if (metaData != null) {
+                    LOGGER.info("MetaData Extraction SUCCESS");
+                } else {
+                    LOGGER.info("MetaData Extraction FAILURE");
+                    return false;
+                }
+
+                DataFrame data = processor.extractData(inputPath, metaData, sqlContext);
+                if (data != null) {
+                    LOGGER.info("Data Extraction SUCCESS");
+
+                    data.write().format("json").save(outputPath);
+                } else {
+                    LOGGER.info("Data Extraction FAILURE");
+                    return false;
+                }
+
+
                 return true;
             }
 
         }
-        // process file here
+        // extractMetaData file here
         return false;
     }
 
 
-    public boolean process(List<ArchiveEntry> entries, OutputStream outputStream) throws IOException, CompressorException, ArchiveException {
+    public boolean process(List<ArchiveEntry> entries, String outputPath) throws IOException, CompressorException, ArchiveException {
 
         for (ArchiveEntry archiveEntry : entries) {
             ZipArchiveEntry zar = (ZipArchiveEntry) archiveEntry;
 
             //archiveEntry.get
-            //process(archiveEntry.)
+            //extractMetaData(archiveEntry.)
         }
         return true;
     }
 
 
-    private String getType(InputStream inputStream) throws CompressorException, IOException {
+    private String getType(String path) throws CompressorException, IOException {
 
-        return tika.detect(inputStream);
-
-    }
-
-
-    private InputStream removeCompression(InputStream inputStream) throws CompressorException {
-
-        return new CompressorStreamFactory().createCompressorInputStream(inputStream);
+        return tika.detect(path);
 
     }
 
-    private List<ArchiveEntry> unpack(InputStream inputStream) throws ArchiveException, IOException {
 
-        ArchiveInputStream archiveInputStream = new ArchiveStreamFactory().createArchiveInputStream(inputStream);
+    private String removeCompression(String inputPath) throws CompressorException {
+
+        return inputPath; // TODO
+
+        //return new CompressorStreamFactory().createCompressorInputStream(inputStream);
+
+    }
+
+    private List<ArchiveEntry> unpack(String path) throws ArchiveException, IOException {
+
+        ArchiveInputStream archiveInputStream = new ArchiveStreamFactory().createArchiveInputStream(new FileInputStream(path));
 
         List<ArchiveEntry> entries = new ArrayList<>();
 
