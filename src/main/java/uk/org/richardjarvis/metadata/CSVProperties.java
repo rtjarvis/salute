@@ -3,6 +3,7 @@ package uk.org.richardjarvis.metadata;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.slf4j.LoggerFactory;
+import scala.Char;
 import uk.org.richardjarvis.utils.SparkProvider;
 
 import java.io.IOException;
@@ -13,6 +14,9 @@ import java.util.*;
  */
 public class CSVProperties {
 
+    private static final List<Character> MOST_LIKELY_STRING_ESCAPES = Arrays.asList('"', '\'');
+    private static final List<Character> MOST_LIKELY_DELIMITERS = Arrays.asList(',', ' ', '\t');
+    ;
     private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CSVProperties.class);
     private Character delimiter;
     private Character stringEnclosure;
@@ -57,7 +61,7 @@ public class CSVProperties {
 
     }
 
-    private Character getCommonFrequencyCharacter(List<String> rows, Character stringEscape) throws IOException {
+    private Set<Character> getCommonFrequencyCharacter(List<String> rows, Character stringEscape) throws IOException {
 
         Map<Character, Integer> firstLineFrequencyTable = getFrequencyTable(rows.get(0), stringEscape);
 
@@ -88,21 +92,46 @@ public class CSVProperties {
             i++;
         }
         if (candidates.size() == 0)
-            return null;
+            return new HashSet<>();
 
-        return candidates.iterator().next();
+        return candidates;
     }
 
+    private Character getProbableCommonFrequencyCharacter(List<String> rows, List<Character> probableChars, List<Character> unlikelyChars,  Character stringEscape) throws IOException {
+
+        Set<Character> commonFrequencyCharacters = getCommonFrequencyCharacter(rows, stringEscape);
+
+        List<Character> candidates = new ArrayList<>();
+
+        candidates.addAll(probableChars);
+        candidates.removeAll(unlikelyChars);
+
+        if (commonFrequencyCharacters.size() == 1) {
+            return commonFrequencyCharacters.iterator().next();
+        } else if (commonFrequencyCharacters.size() > 1) {
+            for (Character c : probableChars) {
+                for (Character pse : candidates) {
+                    if (pse.equals(c))
+                        return c;
+                }
+            }
+            return commonFrequencyCharacters.iterator().next();
+        } else {
+            return null;
+        }
+
+    }
 
     private Character getStringEscape(List<String> rows) throws IOException {
 
-        return getCommonFrequencyCharacter(rows, null);
+        return getProbableCommonFrequencyCharacter(rows, MOST_LIKELY_STRING_ESCAPES, MOST_LIKELY_DELIMITERS, null);
 
     }
 
     private Character getDelimiter(List<String> rows, Character stringEscape) throws IOException {
 
-        return getCommonFrequencyCharacter(rows, stringEscape);
+        return getProbableCommonFrequencyCharacter(rows, MOST_LIKELY_DELIMITERS, MOST_LIKELY_STRING_ESCAPES, stringEscape);
+
     }
 
     private Map<Character, Integer> getFrequencyTable(String text, Character stringEscape) {
@@ -139,7 +168,7 @@ public class CSVProperties {
 
     public CSVFormat getCsvFormat() {
 
-        if (csvFormat !=null )
+        if (csvFormat != null)
             return csvFormat;
 
         csvFormat = CSVFormat.newFormat(getDelimiter());
