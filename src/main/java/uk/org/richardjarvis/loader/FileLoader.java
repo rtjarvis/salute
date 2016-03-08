@@ -13,6 +13,7 @@ import org.apache.tika.Tika;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.derive.MasterDeriver;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
@@ -97,19 +98,23 @@ public class FileLoader {
                 DataFrame data = processor.extractData(inputPath, metaData, sqlContext);
                 if (data != null) {
                     LOGGER.info("Data Extraction SUCCESS");
-
-                    data.write().format("json").save(outputPath);
                 } else {
                     LOGGER.info("Data Extraction FAILURE");
                     return false;
                 }
 
+                MasterDeriver masterDeriver = new MasterDeriver();
+
+                DataFrame derivedData = masterDeriver.derive(data);
+
+                derivedData.write().format("json").save(outputPath);
 
                 return true;
             }
 
         }
-        // extractMetaData file here
+
+
         return false;
     }
 
