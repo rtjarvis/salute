@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.richardjarvis.derive.MasterDeriver;
+import uk.org.richardjarvis.derive.Statistics;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
@@ -105,7 +106,8 @@ public class FileLoader {
 
                 MasterDeriver masterDeriver = new MasterDeriver();
 
-                DataFrame derivedData = masterDeriver.derive(data);
+                Statistics statistics = new Statistics();
+                DataFrame derivedData = masterDeriver.derive(data, statistics);
 
                 derivedData.write().format("json").save(outputPath);
 

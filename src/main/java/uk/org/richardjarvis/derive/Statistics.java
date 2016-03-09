@@ -1,101 +1,101 @@
 package uk.org.richardjarvis.derive;
 
+import org.apache.spark.sql.Column;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Created by rjarvis on 03/03/16.
+ * Created by rjarvis on 09/03/16.
  */
 public class Statistics implements Serializable {
 
-    Double sum = 0.0;
-    Long count = 0l;
-    Double mSquared = 0.0;
-    Double mean = 0.0;
+    Map<String, ColumnStatistics> columnStatisticsMap;
+    Long count=0l;
+    Long notNullCount=0l;
 
-    public Statistics(Double sum, Long count, Double mSquared) {
-        this.sum = sum;
-        this.count = count;
-        this.mSquared = mSquared;
-        this.mean = sum / count;
-    }
 
     public Statistics() {
-
+        columnStatisticsMap = new HashMap<>();
     }
 
-    public void addValue(Double value) {
-        if (value != null) {
-            count++;
-            Double delta = value - mean;
-            mean += delta / count;
-            mSquared += delta * (value - mean);
-            sum += value;
+
+    public Statistics(Long count) {
+        this.count = count;
+    }
+
+    public ColumnStatistics get(Column column) {
+        return get(column.expr().prettyString());
+    }
+
+    public ColumnStatistics get(String column) {
+        if (columnStatisticsMap.containsKey(column)) {
+            return columnStatisticsMap.get(column);
+        } else {
+            ColumnStatistics columnStatistics = new ColumnStatistics();
+            columnStatisticsMap.put(column, columnStatistics);
+            return columnStatistics;
         }
     }
 
-//    private void addValues(Double sum, Long count, Double mSquared) {
-//        // from Chan et al.
-//
-//        this.count += count;
-//        Double delta = sum / count - mean;
-//        mean += delta * count / this.count;
-//        this.mSquared += mSquared;
-//        this.sum+=sum;
-//    }
+    public void put(Column column, ColumnStatistics columnStatistics) {
+        put(column.expr().prettyString(), columnStatistics);
 
-    public Double getStandardDeviation() {
-        return Math.sqrt(mSquared / (count - 1));
     }
 
-    public Double getSum() {
-        return sum;
+    public void put(String column, ColumnStatistics columnStatistics) {
+        if (columnStatistics != null) {
+            columnStatisticsMap.put(column, columnStatistics);
+            Long newCount = columnStatistics.getCount();
+            if (newCount!=null && newCount>count)
+                count=newCount;
+
+            Long newNotNullCount = columnStatistics.getNotNullCount();
+            if (newNotNullCount!=null && newNotNullCount>notNullCount)
+                notNullCount=newNotNullCount;
+        }
+
     }
 
-    public void setSum(Double sum) {
-        this.sum = sum;
+    public Set<String> getColumnNames() {
+        return columnStatisticsMap.keySet();
     }
 
     public Long getCount() {
         return count;
     }
 
-    public void setCount(Long count) {
+    public Long getNotNullCount() {
+        return notNullCount;
+    }
+
+    public void combine(Column column, ColumnStatistics columnStatistics) {
+        combine(column.expr().prettyString(), columnStatistics);
+    }
+
+    public void combine(String column, ColumnStatistics columnStatistics) {
+        if (columnStatistics != null) {
+            ColumnStatistics existingColumn = columnStatisticsMap.get(column);
+            if (existingColumn != null) {
+                put(column, existingColumn.combine(columnStatistics));
+            } else {
+                put(column, columnStatistics);
+            }
+        }
+    }
+
+    public Statistics coallase(Statistics statistics) {
+
+        for (String column : statistics.getColumnNames()) {
+            combine(column, statistics.get(column));
+        }
+        return this;
+    }
+
+    public void setCount(long count) {
         this.count = count;
     }
-
-    public Double getmSquared() {
-        return mSquared;
-    }
-
-    public Double getMean() {
-        return mean;
-    }
-
-    public void setmSquared(Double mSquared) {
-        this.mSquared = mSquared;
-    }
-
-    public Statistics combine(Statistics statistics) {
-        // from Chan et al.
-        if (statistics != null) {
-            Double delta = statistics.getMean() - this.getMean();
-            Double mSq = getmSquared() + statistics.getmSquared() + (delta * delta) * (double) (this.getCount() * statistics.getCount()) / (this.getCount() + statistics.getCount());
-            return new Statistics(this.getSum() + statistics.getSum(), this.getCount() + statistics.getCount(), mSq);
-        } else {
-            return null;
-        }
-
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Statistics{");
-        sb.append("sum=").append(sum);
-        sb.append(", count=").append(count);
-        sb.append(", standard deviation=").append(getStandardDeviation());
-        sb.append(", mean=").append(mean);
-        sb.append('}');
-        return sb.toString();
-    }
-
 }

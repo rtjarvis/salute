@@ -143,7 +143,7 @@ public class JHotEncoder implements Serializable {
 
         List<StructField> schemaFields = new ArrayList<>();
 
-        DataFrame jh = df.groupBy(valueColumnName).count().sort(new Column("count").desc()).sort(df.col(valueColumnName).asc());
+        DataFrame jh = df.groupBy(valueColumnName).count().sort(new Column("notNullCount").desc()).sort(df.col(valueColumnName).asc());
 
         Row[] jHotColumns = jh.head(numberOfCategories+1); // I request more than the number of categories. If there are that many returned then there is an "Other category" otherwise there is not
 

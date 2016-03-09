@@ -12,7 +12,7 @@ public class FieldProperties implements MetaData {
     private int minLength = Integer.MAX_VALUE;
     private int count = 0;
     private long totalChars;
-    private Boolean isNullable=true;
+    private Boolean isNullable = true;
 
     public Boolean getNullable() {
         return isNullable;
@@ -75,20 +75,14 @@ public class FieldProperties implements MetaData {
         if (type == null || type == DataTypes.IntegerType) {
             if (value.matches("^[0-9]*$")) {
                 type = DataTypes.IntegerType;
-            } else {
-                type = DataTypes.StringType;
+            } else if (type == null || type == DataTypes.DoubleType) {
+                if (value.matches("^[-+]*[0-9]*\\.[0-9]+$")) {
+                    type = DataTypes.DoubleType;
+                } else {
+                    type = DataTypes.StringType;
+                }
             }
         }
-
-        if (type == null || type == DataTypes.DoubleType) {
-            if (value.matches("^[0-9]*\\.[0-9]+$")) {
-                type = DataTypes.DoubleType;
-            } else {
-                type = DataTypes.StringType;
-            }
-        }
-
-
     }
 
     public Object convertToType(String value) {
@@ -100,13 +94,13 @@ public class FieldProperties implements MetaData {
 //            case STRING:
 //                return value;
 //            default:
-                return value;
+        return value;
 //        }
     }
 
     public StructField getStructField() {
 
-         return new StructField(getName(), getType(), getNullable(), Metadata.empty());
+        return new StructField(getName(), getType(), getNullable(), Metadata.empty());
 
     }
 }

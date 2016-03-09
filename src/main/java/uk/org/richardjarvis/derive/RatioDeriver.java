@@ -5,6 +5,7 @@ import org.apache.spark.sql.DataFrame;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by rjarvis on 29/02/16.
@@ -13,7 +14,7 @@ public class RatioDeriver implements DeriveInterface {
 
 
     @Override
-    public DataFrame derive(DataFrame input) {
+    public DataFrame derive(DataFrame input, Statistics statisticsMap) {
 
         List<Column> numericColumns = DataFrameUtils.getNumericColumns(input);
 
@@ -24,7 +25,6 @@ public class RatioDeriver implements DeriveInterface {
                 Column numeratorColumn = numericColumns.get(numerator);
                 Column denominatorColumn = numericColumns.get(denominator);
                 input = input.withColumn(numeratorColumn.expr().prettyString() + "_over_" + denominatorColumn.expr().prettyString(), numeratorColumn.divide(denominatorColumn));
-
             }
         }
 

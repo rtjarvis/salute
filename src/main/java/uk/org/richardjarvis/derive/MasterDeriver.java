@@ -1,6 +1,9 @@
 package uk.org.richardjarvis.derive;
 
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
+
+import java.util.Map;
 
 /**
  * Created by rjarvis on 29/02/16.
@@ -8,10 +11,12 @@ import org.apache.spark.sql.DataFrame;
 public class MasterDeriver implements DeriveInterface {
 
     @Override
-    public DataFrame derive(DataFrame input) {
+    public DataFrame derive(DataFrame input, Statistics statisticsMap) {
 
-        DataFrame output = new RatioDeriver().derive(input);
-        output = new DeviationDeriver().derive(output);
+        DataFrame output = new StatisticsDeriver().derive(input, statisticsMap);
+        output = new RatioDeriver().derive(output, statisticsMap);
+        output = new DeviationDeriver().derive(output, statisticsMap);
+        output = new CategoryPopularityDeriver().derive(output, statisticsMap);
 
         return output;
     }
