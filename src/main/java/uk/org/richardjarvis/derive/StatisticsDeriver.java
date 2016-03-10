@@ -6,16 +6,15 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-
-import static scala.collection.JavaConversions.asScalaBuffer;
 
 /**
  * Created by rjarvis on 09/03/16.
  */
 public class StatisticsDeriver implements DeriveInterface {
+
+    private static final int MAX_CARDINALITY = 10;
 
     @Override
     public DataFrame derive(DataFrame input, Statistics statisticsMap) {
@@ -44,9 +43,21 @@ public class StatisticsDeriver implements DeriveInterface {
 
             String column = columns.get(fieldIndex);
 
-            Row[] rows = input.groupBy(column).count().collect();
 
-            statisticsMap.put(column, getFrequencyStatistics(rows, statisticsMap.getCount()));
+            Row[] result = input.groupBy(column).count().sort(new Column("count").desc()).sort(input.col(column).asc()).head(MAX_CARDINALITY + 1); // I request more than the number of categories. If there are that many returned then there is an "Other category" otherwise there is not
+
+            int returnedCategories = (result.length < MAX_CARDINALITY) ? result.length : MAX_CARDINALITY;
+
+            Row[] rows = Arrays.copyOfRange(result, 0, returnedCategories);
+
+            FieldStatistics fieldStatistics = getFrequencyStatistics(rows, statisticsMap.getCount());
+
+            statisticsMap.put(column, fieldStatistics);
+
+            if (result.length > MAX_CARDINALITY) {
+                Long count = getTotalCount(rows);
+                fieldStatistics.addToFrequnecyTable("_OTHER_",statisticsMap.getCount()-count);
+            }
 
         }
 
@@ -70,12 +81,12 @@ public class StatisticsDeriver implements DeriveInterface {
                     for (int fieldIndex = 0; fieldIndex < numericColumnLength; fieldIndex++) {
 
                         String column = columns.get(fieldIndex);
-                        ColumnStatistics columnStatistics = statistics.get(column);
+                        FieldStatistics fieldStatistics = statistics.get(column);
                         Number number = ((Number) (row.get(fieldIndex)));
                         if (number != null) {
-                            columnStatistics.addValue(number.doubleValue());
+                            fieldStatistics.addValue(number.doubleValue());
                         }
-                        updatedStats.put(column, columnStatistics);
+                        updatedStats.put(column, fieldStatistics);
 
                     }
                     return updatedStats;
@@ -88,9 +99,9 @@ public class StatisticsDeriver implements DeriveInterface {
         return statisticsMap;
     }
 
-    private ColumnStatistics getFrequencyStatistics(Row[] rows, Long totalCount) {
+    private FieldStatistics getFrequencyStatistics(Row[] rows, Long totalCount) {
 
-        ColumnStatistics statistics = new ColumnStatistics();
+        FieldStatistics statistics = new FieldStatistics();
 
         for (Row row : rows) {
             statistics.addToFrequnecyTable(row.getString(0), row.getLong(1));
@@ -99,6 +110,16 @@ public class StatisticsDeriver implements DeriveInterface {
         statistics.setCount(totalCount);
 
         return statistics;
+    }
+
+
+    private Long getTotalCount(Row[] rows) {
+
+        Long count = 0l;
+        for (Row row : rows) {
+            count += row.getLong(1);
+        }
+        return count;
     }
 
 }

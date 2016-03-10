@@ -1,20 +1,14 @@
 package uk.org.richardjarvis.derive;
 
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by rjarvis on 08/03/16.
@@ -39,11 +33,11 @@ public class CategoryPopularityDeriver implements DeriveInterface {
             }
             for (int i = 0; i < stringFieldCount; i++) {
                 String columnName = stringColumns.get(i);
-                ColumnStatistics columnStatistics = statisticsMap.get(columnName);
+                FieldStatistics fieldStatistics = statisticsMap.get(columnName);
 
                 String value = row.getString(row.fieldIndex(columnName));
 
-                outputRow[originalFieldCount + i] = columnStatistics.getFrequency(value);
+                outputRow[originalFieldCount + i] = fieldStatistics.getFrequency(value);
             }
             return RowFactory.create(outputRow);
         });

@@ -1,13 +1,15 @@
 package uk.org.richardjarvis.derive;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by rjarvis on 03/03/16.
  */
-public class ColumnStatistics implements Serializable {
+public class FieldStatistics implements Serializable {
 
     Double sum = 0.0;
     Long notNullCount = 0l;
@@ -15,20 +17,31 @@ public class ColumnStatistics implements Serializable {
     Double mean = 0.0;
     Long count = 0l;
     Map<String, Long> frequencyTable = new HashMap<>();
+    List<String> frequencyList = new ArrayList<>();
 
-    public ColumnStatistics(Double sum, Long notNullCount, Double mSquared) {
+    private String name;
+
+    public FieldStatistics(Double sum, Long notNullCount, Double mSquared) {
         this.sum = sum;
         this.notNullCount = notNullCount;
         this.mSquared = mSquared;
         this.mean = sum / notNullCount;
     }
 
-    public ColumnStatistics() {
+    public FieldStatistics() {
 
     }
 
     public Long getCount() {
         return count;
+    }
+
+    public void setCount(Long count) {
+        this.count = count;
+    }
+
+    public Map<String, Long> getFrequencyTable() {
+        return frequencyTable;
     }
 
     public void addValue(Double value) {
@@ -75,18 +88,23 @@ public class ColumnStatistics implements Serializable {
         return mean;
     }
 
-    public ColumnStatistics combine(ColumnStatistics statistics) {
+    public FieldStatistics combine(FieldStatistics statistics) {
         // from Chan et al.
         if (statistics != null) {
             Double delta = statistics.getMean() - this.getMean();
             Double mSq = getmSquared() + statistics.getmSquared() + (delta * delta) * (double) (this.getNotNullCount() * statistics.getNotNullCount()) / (this.getNotNullCount() + statistics.getNotNullCount());
-            return new ColumnStatistics(this.getSum() + statistics.getSum(), this.getNotNullCount() + statistics.getNotNullCount(), mSq);
+            return new FieldStatistics(this.getSum() + statistics.getSum(), this.getNotNullCount() + statistics.getNotNullCount(), mSq);
         } else {
             return null;
         }
     }
 
+    public List<String> getFrequencyList() {
+        return frequencyList;
+    }
+
     public void addToFrequnecyTable(String value, Long count) {
+        frequencyList.add(value);
         frequencyTable.put(value, count);
     }
 
@@ -100,10 +118,9 @@ public class ColumnStatistics implements Serializable {
         }
     }
 
-
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ColumnStatistics{");
+        final StringBuilder sb = new StringBuilder("FieldStatistics{");
         sb.append("sum=").append(sum);
         sb.append(", notNullCount=").append(notNullCount);
         sb.append(", standard deviation=").append(getStandardDeviation());
@@ -112,7 +129,11 @@ public class ColumnStatistics implements Serializable {
         return sb.toString();
     }
 
-    public void setCount(Long count) {
-        this.count = count;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

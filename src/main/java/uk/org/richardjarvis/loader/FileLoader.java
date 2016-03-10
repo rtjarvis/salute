@@ -104,7 +104,7 @@ public class FileLoader {
                     return false;
                 }
 
-                MasterDeriver masterDeriver = new MasterDeriver();
+                MasterDeriver masterDeriver = new MasterDeriver(metaData);
 
                 Statistics statistics = new Statistics();
                 DataFrame derivedData = masterDeriver.derive(data, statistics);

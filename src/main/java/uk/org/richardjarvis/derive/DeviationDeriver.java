@@ -22,7 +22,7 @@ public class DeviationDeriver implements DeriveInterface {
 
         for (int fieldIndex = 0; fieldIndex < numericColumnCount; fieldIndex++) {
             Column valueColumn = numericColumns.get(fieldIndex);
-            ColumnStatistics stats = statisticsMap.get(valueColumn);
+            FieldStatistics stats = statisticsMap.get(valueColumn);
             output = output.withColumn(valueColumn.expr().prettyString() + "_zindex", valueColumn.minus(stats.getMean()).divide(stats.getStandardDeviation()));
         }
 

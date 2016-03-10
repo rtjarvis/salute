@@ -4,7 +4,6 @@ import org.apache.spark.sql.Column;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +12,7 @@ import java.util.Set;
  */
 public class Statistics implements Serializable {
 
-    Map<String, ColumnStatistics> columnStatisticsMap;
+    Map<String, FieldStatistics> columnStatisticsMap;
     Long count=0l;
     Long notNullCount=0l;
 
@@ -27,33 +26,33 @@ public class Statistics implements Serializable {
         this.count = count;
     }
 
-    public ColumnStatistics get(Column column) {
+    public FieldStatistics get(Column column) {
         return get(column.expr().prettyString());
     }
 
-    public ColumnStatistics get(String column) {
+    public FieldStatistics get(String column) {
         if (columnStatisticsMap.containsKey(column)) {
             return columnStatisticsMap.get(column);
         } else {
-            ColumnStatistics columnStatistics = new ColumnStatistics();
-            columnStatisticsMap.put(column, columnStatistics);
-            return columnStatistics;
+            FieldStatistics fieldStatistics = new FieldStatistics();
+            columnStatisticsMap.put(column, fieldStatistics);
+            return fieldStatistics;
         }
     }
 
-    public void put(Column column, ColumnStatistics columnStatistics) {
-        put(column.expr().prettyString(), columnStatistics);
+    public void put(Column column, FieldStatistics fieldStatistics) {
+        put(column.expr().prettyString(), fieldStatistics);
 
     }
 
-    public void put(String column, ColumnStatistics columnStatistics) {
-        if (columnStatistics != null) {
-            columnStatisticsMap.put(column, columnStatistics);
-            Long newCount = columnStatistics.getCount();
+    public void put(String column, FieldStatistics fieldStatistics) {
+        if (fieldStatistics != null) {
+            columnStatisticsMap.put(column, fieldStatistics);
+            Long newCount = fieldStatistics.getCount();
             if (newCount!=null && newCount>count)
                 count=newCount;
 
-            Long newNotNullCount = columnStatistics.getNotNullCount();
+            Long newNotNullCount = fieldStatistics.getNotNullCount();
             if (newNotNullCount!=null && newNotNullCount>notNullCount)
                 notNullCount=newNotNullCount;
         }
@@ -72,17 +71,17 @@ public class Statistics implements Serializable {
         return notNullCount;
     }
 
-    public void combine(Column column, ColumnStatistics columnStatistics) {
-        combine(column.expr().prettyString(), columnStatistics);
+    public void combine(Column column, FieldStatistics fieldStatistics) {
+        combine(column.expr().prettyString(), fieldStatistics);
     }
 
-    public void combine(String column, ColumnStatistics columnStatistics) {
-        if (columnStatistics != null) {
-            ColumnStatistics existingColumn = columnStatisticsMap.get(column);
+    public void combine(String column, FieldStatistics fieldStatistics) {
+        if (fieldStatistics != null) {
+            FieldStatistics existingColumn = columnStatisticsMap.get(column);
             if (existingColumn != null) {
-                put(column, existingColumn.combine(columnStatistics));
+                put(column, existingColumn.combine(fieldStatistics));
             } else {
-                put(column, columnStatistics);
+                put(column, fieldStatistics);
             }
         }
     }
