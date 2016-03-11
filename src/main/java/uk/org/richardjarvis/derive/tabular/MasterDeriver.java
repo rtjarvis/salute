@@ -1,7 +1,6 @@
 package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.DataFrame;
-import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 
 /**
@@ -15,7 +14,7 @@ public class MasterDeriver implements TabularDeriveInterface {
         DataFrame output = new DateFormatDeriver().derive(input, metaData);
         output = new StatisticsDeriver().derive(output, metaData);
         output = new RatioDeriver().derive(output, metaData);
-        output = new DeviationDeriver().derive(output, metaData);
+        output = new ZIndexDeriver().derive(output, metaData);
         output = new CategoryPopularityDeriver().derive(output, metaData);
         output = new OneHotDeriver().derive(output, metaData);
 

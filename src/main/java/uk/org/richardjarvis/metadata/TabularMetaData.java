@@ -4,6 +4,7 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,5 +108,19 @@ public class TabularMetaData  implements MetaData{
         return result;
 
     }
+
+    public List<FieldProperties> getNumericFields() {
+
+        List<FieldProperties> result = new ArrayList<>();
+
+        for (FieldProperties fieldProperties : this.fieldPropertiesList) {
+            if (DataFrameUtils.isNumericType(fieldProperties.getType()))
+                result.add(fieldProperties);
+
+        }
+        return result;
+
+    }
+
 
 }

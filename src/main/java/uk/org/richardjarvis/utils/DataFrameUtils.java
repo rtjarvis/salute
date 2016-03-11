@@ -2,6 +2,7 @@ package uk.org.richardjarvis.utils;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -74,24 +75,28 @@ public class DataFrameUtils {
 
     }
 
-    private static boolean isNumericType(StructField dataType) {
-
-        return (dataType.dataType().sameType(DataTypes.DoubleType) ||
-                dataType.dataType().sameType(DataTypes.IntegerType) ||
-                dataType.dataType().sameType(DataTypes.FloatType) ||
-                dataType.dataType().sameType(DataTypes.ShortType) ||
-                dataType.dataType().sameType(DataTypes.LongType));
+    public static boolean isNumericType(DataType dataType) {
+        return (dataType.sameType(DataTypes.DoubleType) ||
+                dataType.sameType(DataTypes.IntegerType) ||
+                dataType.sameType(DataTypes.FloatType) ||
+                dataType.sameType(DataTypes.ShortType) ||
+                dataType.sameType(DataTypes.LongType));
 
     }
 
-    private static boolean isStringType(StructField dataType) {
+    public static boolean isNumericType(StructField dataType) {
+
+        return isNumericType(dataType.dataType());
+    }
+
+    public static boolean isStringType(StructField dataType) {
 
         return (dataType.dataType().sameType(DataTypes.StringType) &&
                 !dataType.metadata().contains(FieldProperties.DATE_FORMAT_METADATA));
 
     }
 
-    private static Type getType(StructField dataType) {
+    public static Type getType(StructField dataType) {
 
         if (isNumericType(dataType))
             return Type.NUMERIC;
@@ -103,10 +108,10 @@ public class DataFrameUtils {
         return Type.UNKNOWN;
     }
 
-    private static boolean isDateType(StructField dataType) {
+    public static boolean isDateType(StructField dataType) {
         return (dataType.dataType().sameType(DataTypes.DateType));
     }
 
-    private enum Type {NUMERIC, STRING, UNKNOWN, DATE}
+    public enum Type {NUMERIC, STRING, UNKNOWN, DATE}
 
 }
