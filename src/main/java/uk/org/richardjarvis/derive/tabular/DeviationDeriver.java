@@ -1,6 +1,9 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.*;
+import uk.org.richardjarvis.metadata.FieldStatistics;
+import uk.org.richardjarvis.metadata.MetaData;
+import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 
@@ -9,10 +12,10 @@ import java.util.*;
 /**
  * Created by rjarvis on 29/02/16.
  */
-public class DeviationDeriver implements DeriveInterface {
+public class DeviationDeriver implements TabularDeriveInterface {
 
     @Override
-    public DataFrame derive(DataFrame input, Statistics statisticsMap) {
+    public DataFrame derive(DataFrame input,  TabularMetaData metaData) {
 
         List<Column> numericColumns = DataFrameUtils.getNumericColumns(input);
 
@@ -22,7 +25,7 @@ public class DeviationDeriver implements DeriveInterface {
 
         for (int fieldIndex = 0; fieldIndex < numericColumnCount; fieldIndex++) {
             Column valueColumn = numericColumns.get(fieldIndex);
-            FieldStatistics stats = statisticsMap.get(valueColumn);
+            FieldStatistics stats = metaData.getStatistics().get(valueColumn);
             output = output.withColumn(valueColumn.expr().prettyString() + "_zindex", valueColumn.minus(stats.getMean()).divide(stats.getStandardDeviation()));
         }
 

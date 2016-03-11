@@ -13,8 +13,8 @@ import java.io.OutputStream;
  */
 public interface ProcessorInterface {
 
-    public MetaData extractMetaData(String path) throws IOException;
+    MetaData extractMetaData(String path) throws IOException;
 
-    public DataFrame extractData(String path, MetaData metaData, SQLContext sqlContext) throws IOException;
+    DataFrame extractData(String path, MetaData metaData, SQLContext sqlContext) throws IOException;
 
 }

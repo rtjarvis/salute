@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.derive.tabular;
 
 import java.io.Serializable;
 

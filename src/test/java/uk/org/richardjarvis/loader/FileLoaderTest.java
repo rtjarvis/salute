@@ -46,4 +46,19 @@ public class FileLoaderTest {
         fl.process(testFile.getPath(), outputDir);
 
     }
+
+    @Test
+    public void testProcess3() throws Exception {
+
+        String outputDir = "/tmp/test2.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
+
+        URL testFile = getClass().getResource("/csv_with_date_and_header.csv");
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(testFile.getPath(), outputDir);
+
+    }
 }

@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -14,9 +14,8 @@ import org.apache.spark.sql.types.StructType;
 import scala.Tuple2;
 import uk.org.richardjarvis.utils.Event;
 import uk.org.richardjarvis.utils.SparkProvider;
-import uk.org.richardjarvis.derive.Aspect;
 
-import static uk.org.richardjarvis.derive.Aspect.CubeType.*;
+import static uk.org.richardjarvis.derive.tabular.Aspect.CubeType.*;
 
 import java.util.*;
 

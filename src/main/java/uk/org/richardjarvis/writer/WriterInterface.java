@@ -10,5 +10,5 @@ import java.io.OutputStream;
  */
 public interface WriterInterface {
 
-    public boolean write(MetaData metadata, InputStream inputStream, OutputStream outputStream);
+    boolean write(MetaData metadata, InputStream inputStream, OutputStream outputStream);
 }

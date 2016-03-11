@@ -1,20 +1,21 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
+import uk.org.richardjarvis.metadata.MetaData;
+import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by rjarvis on 29/02/16.
  */
-public class RatioDeriver implements DeriveInterface {
+public class RatioDeriver implements TabularDeriveInterface {
 
 
     @Override
-    public DataFrame derive(DataFrame input, Statistics statisticsMap) {
+    public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
         List<Column> numericColumns = DataFrameUtils.getNumericColumns(input);
 

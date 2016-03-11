@@ -1,8 +1,11 @@
 package uk.org.richardjarvis.metadata;
 
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,6 +17,15 @@ public class TabularMetaData  implements MetaData{
     private CSVProperties csvProperties;
     private String name;
     private boolean hasHeader;
+    private Statistics statistics=new Statistics();
+
+    public Statistics getStatistics() {
+        return statistics;
+    }
+
+    public void setStatistics(Statistics statistics) {
+        this.statistics = statistics;
+    }
 
     public boolean hasHeader() {
         return hasHeader;
@@ -81,6 +93,19 @@ public class TabularMetaData  implements MetaData{
         }
 
         return new StructType(fields);
+    }
+
+    public List<FieldProperties> getRawDateFields() {
+
+        List<FieldProperties> result = new ArrayList<>();
+
+        for (FieldProperties fieldProperties : this.fieldPropertiesList) {
+            if (fieldProperties.getType()== DataTypes.DateType)
+                result.add(fieldProperties);
+
+        }
+        return result;
+
     }
 
 }

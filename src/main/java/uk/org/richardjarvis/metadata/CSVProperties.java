@@ -16,7 +16,6 @@ public class CSVProperties {
 
     private static final List<Character> MOST_LIKELY_STRING_ESCAPES = Arrays.asList('"', '\'');
     private static final List<Character> MOST_LIKELY_DELIMITERS = Arrays.asList(',', ' ', '\t');
-    ;
     private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CSVProperties.class);
     private Character delimiter;
     private Character stringEnclosure;

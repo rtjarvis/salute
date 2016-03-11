@@ -1,12 +1,11 @@
 package uk.org.richardjarvis.utils;
 
-import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import uk.org.richardjarvis.metadata.FieldProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
  */
 public class DataFrameUtils {
 
-    public static List<Column> getNumericColumns(DataFrame input) {
+    private static List<Column> getTypeOfColumns(DataFrame input, Type type) {
 
         List<Column> matchingColumns = new ArrayList<>();
 
@@ -24,7 +23,7 @@ public class DataFrameUtils {
 
         for (StructField field : schema.fields()) {
 
-            if (isNumericType(field.dataType())) {
+            if (getType(field) == type) {
                 matchingColumns.add(input.col(field.name()));
             }
         }
@@ -42,6 +41,10 @@ public class DataFrameUtils {
         return columnNames;
     }
 
+    public static List<Column> getNumericColumns(DataFrame input) {
+        return getTypeOfColumns(input, Type.NUMERIC);
+    }
+
     public static List<String> getNumericColumnsNames(DataFrame input) {
 
         return getColumnsNames(getNumericColumns(input));
@@ -50,18 +53,7 @@ public class DataFrameUtils {
 
     public static List<Column> getStringColumns(DataFrame input) {
 
-        List<Column> matchingColumns = new ArrayList<>();
-
-        StructType schema = input.schema();
-
-        for (StructField field : schema.fields()) {
-
-            if (isStringType(field.dataType())) {
-                matchingColumns.add(input.col(field.name()));
-            }
-        }
-
-        return matchingColumns;
+        return getTypeOfColumns(input, Type.STRING);
     }
 
     public static List<String> getStringColumnsNames(DataFrame input) {
@@ -82,19 +74,39 @@ public class DataFrameUtils {
 
     }
 
-    private static boolean isNumericType(DataType dataType) {
+    private static boolean isNumericType(StructField dataType) {
 
-        return (dataType.sameType(DataTypes.DoubleType) ||
-                dataType.sameType(DataTypes.IntegerType) ||
-                dataType.sameType(DataTypes.FloatType) ||
-                dataType.sameType(DataTypes.ShortType) ||
-                dataType.sameType(DataTypes.LongType));
+        return (dataType.dataType().sameType(DataTypes.DoubleType) ||
+                dataType.dataType().sameType(DataTypes.IntegerType) ||
+                dataType.dataType().sameType(DataTypes.FloatType) ||
+                dataType.dataType().sameType(DataTypes.ShortType) ||
+                dataType.dataType().sameType(DataTypes.LongType));
+
+    }
+
+    private static boolean isStringType(StructField dataType) {
+
+        return (dataType.dataType().sameType(DataTypes.StringType) &&
+                !dataType.metadata().contains(FieldProperties.DATE_FORMAT_METADATA));
 
     }
 
-    private static boolean isStringType(DataType dataType) {
+    private static Type getType(StructField dataType) {
 
-        return (dataType.sameType(DataTypes.StringType));
+        if (isNumericType(dataType))
+            return Type.NUMERIC;
+        if (isDateType(dataType))
+            return Type.DATE;
+        if (isStringType(dataType))
+            return Type.STRING;
 
+        return Type.UNKNOWN;
     }
+
+    private static boolean isDateType(StructField dataType) {
+        return (dataType.dataType().sameType(DataTypes.DateType));
+    }
+
+    private enum Type {NUMERIC, STRING, UNKNOWN, DATE}
+
 }

@@ -6,16 +6,16 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.tika.Tika;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.richardjarvis.derive.MasterDeriver;
-import uk.org.richardjarvis.derive.Statistics;
+import uk.org.richardjarvis.derive.tabular.MasterDeriver;
+import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.MetaData;
+import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
 import uk.org.richardjarvis.processor.text.TabularProcessor;
@@ -104,10 +104,13 @@ public class FileLoader {
                     return false;
                 }
 
-                MasterDeriver masterDeriver = new MasterDeriver(metaData);
+                DataFrame derivedData = null;
 
-                Statistics statistics = new Statistics();
-                DataFrame derivedData = masterDeriver.derive(data, statistics);
+                if (metaData instanceof TabularMetaData) {
+
+                    MasterDeriver masterDeriver = new MasterDeriver();
+                    derivedData = masterDeriver.derive(data, (TabularMetaData)metaData);
+                }
 
                 derivedData.write().format("json").save(outputPath);
 

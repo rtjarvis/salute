@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.metadata;
 
 import org.apache.spark.sql.Column;
 

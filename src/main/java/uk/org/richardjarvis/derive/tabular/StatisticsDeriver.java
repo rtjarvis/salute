@@ -1,9 +1,13 @@
-package uk.org.richardjarvis.derive;
+package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import uk.org.richardjarvis.metadata.FieldStatistics;
+import uk.org.richardjarvis.metadata.MetaData;
+import uk.org.richardjarvis.metadata.Statistics;
+import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.Arrays;
@@ -12,24 +16,24 @@ import java.util.List;
 /**
  * Created by rjarvis on 09/03/16.
  */
-public class StatisticsDeriver implements DeriveInterface {
+public class StatisticsDeriver implements TabularDeriveInterface {
 
     private static final int MAX_CARDINALITY = 10;
 
     @Override
-    public DataFrame derive(DataFrame input, Statistics statisticsMap) {
+    public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
         List<String> numericColumns = DataFrameUtils.getNumericColumnsNames(input);
 
         if (numericColumns.size() > 0) {
-            statisticsMap.coallase(calculateNumericStats(input, numericColumns));
+            metaData.getStatistics().coallase(calculateNumericStats(input, numericColumns));
         } else {
-            statisticsMap.setCount(input.count());
+            metaData.getStatistics().setCount(input.count());
         }
 
         List<String> stringColumns = DataFrameUtils.getStringColumnsNames(input);
 
-        calculateCategoryStats(input, stringColumns, statisticsMap);
+        calculateCategoryStats(input, stringColumns, metaData.getStatistics());
 
         return input;
 
