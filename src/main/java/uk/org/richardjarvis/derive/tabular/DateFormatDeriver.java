@@ -10,6 +10,9 @@ import uk.org.richardjarvis.metadata.FieldProperties;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -30,6 +33,7 @@ public class DateFormatDeriver implements TabularDeriveInterface {
         timePeriods.put("DayOfYear", DataTypes.IntegerType);
         timePeriods.put("Month", DataTypes.StringType);
         timePeriods.put("Year", DataTypes.IntegerType);
+        timePeriods.put("EpochTime", DataTypes.LongType);
 
     }
 
@@ -60,7 +64,8 @@ public class DateFormatDeriver implements TabularDeriveInterface {
 
                 String value = row.getString(columnIndex);
 
-                LocalDateTime date = LocalDateTime.parse(value, columns.get(i).getDateFormattter());
+                DateTimeFormatter formatter = columns.get(i).getDateFormattter();
+                ZonedDateTime date = ZonedDateTime.parse(value, formatter);
 
                 outputRow[fieldIndex++] = date.getSecond();
                 outputRow[fieldIndex++] = date.getMinute();
@@ -70,6 +75,7 @@ public class DateFormatDeriver implements TabularDeriveInterface {
                 outputRow[fieldIndex++] = date.getDayOfYear();
                 outputRow[fieldIndex++] = date.getMonth().toString();
                 outputRow[fieldIndex++] = date.getYear();
+                outputRow[fieldIndex++] = date.toEpochSecond();
 
             }
             return RowFactory.create(outputRow);
@@ -78,12 +84,18 @@ public class DateFormatDeriver implements TabularDeriveInterface {
         StructType structType = input.schema();
         for (FieldProperties fieldProperties : columns) {
             for (String timePeriod : timePeriods.keySet()) {
-                structType = structType.add(fieldProperties.getName() + "_" + timePeriod, timePeriods.get(timePeriod));
+                structType = structType.add(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod));
             }
         }
 
+        metaData.setPrimaryTimeStampFieldName(getName(columns.get(0), "EpochTime"));
+
         return input.sqlContext().createDataFrame(output, structType);
 
+    }
+
+    private String getName(FieldProperties fieldProperties, String timePeriod) {
+        return fieldProperties.getName() + "_" + timePeriod;
     }
 }
 

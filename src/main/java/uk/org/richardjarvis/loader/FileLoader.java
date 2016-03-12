@@ -17,6 +17,7 @@ import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
+import uk.org.richardjarvis.processor.audio.AudioProcessor;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
 import uk.org.richardjarvis.processor.text.TabularProcessor;
 import uk.org.richardjarvis.utils.SparkProvider;
@@ -45,7 +46,6 @@ public class FileLoader {
 
     public FileLoader() {
         this.tika = new Tika();
-        this.sqlContext = SparkProvider.getSQLContext();
     }
 
     public boolean process(String inputPath, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
@@ -82,7 +82,7 @@ public class FileLoader {
                     break;
                 case AUDIO:
                     LOGGER.info("Processing file as audio");
-                    processor = new ImageProcessor();
+                    processor = new AudioProcessor();
                     break;
             }
 
@@ -96,7 +96,7 @@ public class FileLoader {
                     return false;
                 }
 
-                DataFrame data = processor.extractData(inputPath, metaData, sqlContext);
+                DataFrame data = processor.extractData(inputPath, metaData, getSqlContext());
                 if (data != null) {
                     LOGGER.info("Data Extraction SUCCESS");
                 } else {
@@ -104,12 +104,12 @@ public class FileLoader {
                     return false;
                 }
 
-                DataFrame derivedData = null;
+                DataFrame derivedData = data;
 
                 if (metaData instanceof TabularMetaData) {
 
                     MasterDeriver masterDeriver = new MasterDeriver();
-                    derivedData = masterDeriver.derive(data, (TabularMetaData)metaData);
+                    derivedData = masterDeriver.derive(data, (TabularMetaData) metaData);
                 }
 
                 derivedData.write().format("json").save(outputPath);
@@ -169,4 +169,9 @@ public class FileLoader {
     }
 
 
+    public SQLContext getSqlContext() {
+        if (this.sqlContext==null)
+            this.sqlContext = SparkProvider.getSQLContext();
+        return sqlContext;
+    }
 }

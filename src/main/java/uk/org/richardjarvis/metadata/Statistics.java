@@ -86,7 +86,7 @@ public class Statistics implements Serializable {
         }
     }
 
-    public Statistics coallase(Statistics statistics) {
+    public Statistics coalesce(Statistics statistics) {
 
         for (String column : statistics.getColumnNames()) {
             combine(column, statistics.get(column));

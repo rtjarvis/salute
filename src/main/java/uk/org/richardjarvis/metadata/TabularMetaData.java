@@ -19,6 +19,7 @@ public class TabularMetaData  implements MetaData{
     private String name;
     private boolean hasHeader;
     private Statistics statistics=new Statistics();
+    private String primaryTimeStampFieldName;
 
     public Statistics getStatistics() {
         return statistics;
@@ -123,4 +124,11 @@ public class TabularMetaData  implements MetaData{
     }
 
 
+    public String getPrimaryTimeStampFieldName() {
+        return primaryTimeStampFieldName;
+    }
+
+    public void setPrimaryTimeStampFieldName(String primaryTimeStampFieldName) {
+        this.primaryTimeStampFieldName = primaryTimeStampFieldName;
+    }
 }

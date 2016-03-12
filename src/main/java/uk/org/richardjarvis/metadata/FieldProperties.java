@@ -5,9 +5,11 @@ import org.apache.spark.sql.types.*;
 import java.io.Serializable;
 import java.text.Format;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -162,7 +164,7 @@ public class FieldProperties implements MetaData, Serializable {
 
         this.possibleDateTimeFormats = updatedPossibleDateTimeFormats;
 
-        return this.possibleDateTimeFormats.size()>0;
+        return this.possibleDateTimeFormats.size() > 0;
 
     }
 
@@ -171,6 +173,12 @@ public class FieldProperties implements MetaData, Serializable {
     }
 
     public DateTimeFormatter getDateFormattter() {
-        return DateTimeFormatter.ofPattern(getDateFormat());
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(getDateFormat()).withZone(getZone());
+        return dateTimeFormatter;
+    }
+
+    public ZoneId getZone() {
+        return ZoneId.systemDefault();
     }
 }

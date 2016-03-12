@@ -5,7 +5,6 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import uk.org.richardjarvis.metadata.FieldStatistics;
-import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
@@ -26,7 +25,7 @@ public class StatisticsDeriver implements TabularDeriveInterface {
         List<String> numericColumns = DataFrameUtils.getNumericColumnsNames(input);
 
         if (numericColumns.size() > 0) {
-            metaData.getStatistics().coallase(calculateNumericStats(input, numericColumns));
+            metaData.getStatistics().coalesce(calculateNumericStats(input, numericColumns));
         } else {
             metaData.getStatistics().setCount(input.count());
         }
@@ -96,7 +95,7 @@ public class StatisticsDeriver implements TabularDeriveInterface {
                     return updatedStats;
                 }, (statisticsesA, statisticsesB) -> {
 
-                    return statisticsesA.coallase(statisticsesB);
+                    return statisticsesA.coalesce(statisticsesB);
                 }
         );
 

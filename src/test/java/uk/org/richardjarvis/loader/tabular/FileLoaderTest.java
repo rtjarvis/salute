@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.loader;
+package uk.org.richardjarvis.loader.tabular;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;

@@ -28,6 +28,9 @@ public class FileAssessor {
         if ("text/plain,text/csv".contains(streamType))
             return FileType.TEXT;
 
+        if ("audio/mpeg,audio/x-wav".contains(streamType))
+            return FileType.AUDIO;
+
         return FileType.UNKNOWN;
     }
 
