@@ -19,7 +19,6 @@ import uk.org.richardjarvis.processor.ProcessorInterface;
 import javax.sound.sampled.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,7 +27,8 @@ import java.util.List;
 public class AudioProcessor implements ProcessorInterface {
 
     private static final int TIME_WINDOW_LENGTH_SECONDS = 5;
-    private static final int NUMBER_OF_FREQ_OUTPUT = 10;
+    private static final int NUMBER_OF_FREQ_OUTPUT = 1000;
+    private static final double FREQUENCY_BIN_SIZE = 20d;
 
     static String[] notes = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
 
@@ -63,7 +63,7 @@ public class AudioProcessor implements ProcessorInterface {
             double time = 0;
 
             List<Row> rows = new ArrayList<>();
-
+            int reportedFrequencyCount = 10;
 
             while (offset < size) {
 
@@ -79,7 +79,7 @@ public class AudioProcessor implements ProcessorInterface {
                     double[] channelBuffer = getBuffer(timeBuffer, channel, audioFormat);
                     channelBuffer = hanningWindow(channelBuffer);
 
-                    List<Double> frequencies = getFFT(channelBuffer, audioFormat.getFrameRate());
+                    List<Double> frequencies = getPSD(channelBuffer, audioFormat.getFrameRate(), FREQUENCY_BIN_SIZE);
 
                     for (int i = 0; i < NUMBER_OF_FREQ_OUTPUT; i++) {
                         if (i < frequencies.size()) {
@@ -95,7 +95,7 @@ public class AudioProcessor implements ProcessorInterface {
 
             }
 
-            return sqlContext.createDataFrame(rows, getSchema(numberOfChannels));
+            return sqlContext.createDataFrame(rows, getSchema(numberOfChannels, NUMBER_OF_FREQ_OUTPUT, FREQUENCY_BIN_SIZE));
 
 
         } catch (UnsupportedAudioFileException e) {
@@ -104,15 +104,15 @@ public class AudioProcessor implements ProcessorInterface {
 
     }
 
-    private StructType getSchema(int numberOfChannels) {
+    private StructType getSchema(int numberOfChannels, int numberOfBins, double binWidth) {
 
-        StructField[] fields = new StructField[1 + numberOfChannels * NUMBER_OF_FREQ_OUTPUT];
+        StructField[] fields = new StructField[1 + numberOfChannels * numberOfBins];
 
         int fieldIndex = 0;
         fields[fieldIndex++] = new StructField("Time", DataTypes.DoubleType, false, Metadata.empty());
         for (int i = 0; i < numberOfChannels; i++) {
-            for (int j = 0; j < NUMBER_OF_FREQ_OUTPUT; j++) {
-                fields[fieldIndex++] = new StructField("Channel_" + i + "_frequency_" + j, DataTypes.DoubleType, false, Metadata.empty());
+            for (int j = 0; j < numberOfBins; j++) {
+                fields[fieldIndex++] = new StructField("Channel_" + i + "_frequency_" + j * binWidth, DataTypes.DoubleType, false, Metadata.empty());
             }
         }
         return new StructType(fields);
@@ -122,18 +122,32 @@ public class AudioProcessor implements ProcessorInterface {
         return (double) length / (audioFormat.getFrameRate() * audioFormat.getFrameSize());
     }
 
-    private List<Double> getFFT(double[] buffer, float rate) {
+    private List<Double> getPSD(double[] buffer, float rate, double frequencyBinSize) {
+
         FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
         Complex resultC[] = fft.transform(buffer, TransformType.FORWARD);
 
-        double[] results = new double[resultC.length];
-        for (int i = 0; i < resultC.length; i++) {
-            double real = resultC[i].getReal();
-            double imaginary = resultC[i].getImaginary();
-            results[i] = Math.sqrt(real * real + imaginary * imaginary);
+        return getPowerSpectralDensity(resultC, rate, frequencyBinSize);
+    }
+
+    private List<Double> getPowerSpectralDensity(Complex[] frequncyDomainBuffer, float sampleFrequency, double frequencyBinSize) {
+
+        List<Double> result = new ArrayList<>();
+
+        int samplesPerBin = (int) Math.round(frequencyBinSize / sampleFrequency * frequncyDomainBuffer.length);
+
+        for (int i = 0; i < frequncyDomainBuffer.length-samplesPerBin; i += samplesPerBin) {
+
+            double powerDensity = 0;
+            for (int binIndex = i; binIndex < i+samplesPerBin; binIndex++) {
+                double real = frequncyDomainBuffer[binIndex].getReal();
+                double imaginary = frequncyDomainBuffer[binIndex].getImaginary();
+                powerDensity += ((real * real + imaginary * imaginary) / sampleFrequency);
+            }
+            result.add(powerDensity);
         }
 
-        return DiscreteFourierTransform.process(results, rate, resultC.length, 7);
+        return result;
     }
 
 
