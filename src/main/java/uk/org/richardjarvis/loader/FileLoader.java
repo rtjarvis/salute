@@ -12,8 +12,9 @@ import org.apache.tika.Tika;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.richardjarvis.derive.tabular.MasterDeriver;
-import uk.org.richardjarvis.metadata.Statistics;
+import uk.org.richardjarvis.derive.audio.AudioMasterDeriver;
+import uk.org.richardjarvis.derive.tabular.TabularMasterDeriver;
+import uk.org.richardjarvis.metadata.AudioMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
@@ -108,11 +109,19 @@ public class FileLoader {
 
                 if (metaData instanceof TabularMetaData) {
 
-                    MasterDeriver masterDeriver = new MasterDeriver();
+                    TabularMasterDeriver masterDeriver = new TabularMasterDeriver();
                     derivedData = masterDeriver.derive(data, (TabularMetaData) metaData);
+                } else if (metaData instanceof AudioMetaData) {
+                    AudioMasterDeriver masterDeriver = new AudioMasterDeriver();
+                    derivedData = masterDeriver.derive(data, (AudioMetaData) metaData);
                 }
 
                 derivedData.write().format("json").save(outputPath);
+
+                derivedData.write()
+                        .format("com.databricks.spark.csv")
+                        .option("header", "true")
+                        .save(outputPath+".csv");
 
                 return true;
             }
@@ -170,7 +179,7 @@ public class FileLoader {
 
 
     public SQLContext getSqlContext() {
-        if (this.sqlContext==null)
+        if (this.sqlContext == null)
             this.sqlContext = SparkProvider.getSQLContext();
         return sqlContext;
     }

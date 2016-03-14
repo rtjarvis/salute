@@ -6,7 +6,7 @@ import uk.org.richardjarvis.metadata.TabularMetaData;
 /**
  * Created by rjarvis on 29/02/16.
  */
-public class MasterDeriver implements TabularDeriveInterface {
+public class TabularMasterDeriver implements TabularDeriveInterface {
 
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {

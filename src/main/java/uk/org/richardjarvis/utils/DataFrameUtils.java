@@ -16,6 +16,8 @@ import java.util.List;
  */
 public class DataFrameUtils {
 
+    public static final String CHANNEL_METADATA_KEY = "Channel";
+
     private static List<Column> getTypeOfColumns(DataFrame input, Type type) {
 
         List<Column> matchingColumns = new ArrayList<>();
@@ -104,14 +106,28 @@ public class DataFrameUtils {
             return Type.DATE;
         if (isStringType(dataType))
             return Type.STRING;
+        if (isAudioWaveForm(dataType))
+            return Type.AUDIO_WAVEFORM;
 
         return Type.UNKNOWN;
+    }
+
+    private static boolean isAudioWaveForm(StructField dataType) {
+        return dataType.metadata().contains(CHANNEL_METADATA_KEY);
     }
 
     public static boolean isDateType(StructField dataType) {
         return (dataType.dataType().sameType(DataTypes.DateType));
     }
 
-    public enum Type {NUMERIC, STRING, UNKNOWN, DATE}
+    public static List<String> getAudioColumnsNames(DataFrame input) {
+        return getColumnsNames(getTypeOfColumns(input, Type.AUDIO_WAVEFORM));
+    }
+
+    public static List<Column> getAudioWaveformColumns(DataFrame input) {
+        return getTypeOfColumns(input, Type.AUDIO_WAVEFORM);
+    }
+
+    public enum Type {AUDIO_WAVEFORM, NUMERIC, STRING, UNKNOWN, DATE}
 
 }

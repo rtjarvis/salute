@@ -8,13 +8,11 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.*;
 import uk.org.richardjarvis.metadata.AudioMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -26,11 +24,7 @@ import java.util.List;
  */
 public class AudioProcessor implements ProcessorInterface {
 
-    private static final int TIME_WINDOW_LENGTH_SECONDS = 5;
-    private static final int NUMBER_OF_FREQ_OUTPUT = 1000;
-    private static final double FREQUENCY_BIN_SIZE = 20d;
-
-    static String[] notes = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
+    private static final double TIME_WINDOW_LENGTH_SECONDS = 1.0d;
 
     @Override
     public MetaData extractMetaData(String path) throws IOException {
@@ -60,43 +54,33 @@ public class AudioProcessor implements ProcessorInterface {
             int size = audioInputStream.available();
             int numberOfChannels = audioFormat.getChannels();
             int offset = 0;
-            double time = 0;
+            double startTime = 0;
 
             List<Row> rows = new ArrayList<>();
-            int reportedFrequencyCount = 10;
 
             while (offset < size) {
 
-                Object[] row = new Object[1 + numberOfChannels * NUMBER_OF_FREQ_OUTPUT];
+                Object[] row = new Object[3 + numberOfChannels];
+
                 int rowIndex = 0;
-                row[rowIndex++] = time;
+                row[rowIndex++] = startTime;
                 byte[] timeBuffer = readBlock(audioInputStream, audioFormat, TIME_WINDOW_LENGTH_SECONDS);
                 offset += timeBuffer.length;
-                time += getTimeLength(timeBuffer.length, audioFormat);
 
                 for (int channel = 0; channel < numberOfChannels; channel++) {
 
-                    double[] channelBuffer = getBuffer(timeBuffer, channel, audioFormat);
-                    channelBuffer = hanningWindow(channelBuffer);
+                    List<Double> buf = getBuffer(timeBuffer, channel, audioFormat);
+                    double length = getTimeLength(timeBuffer.length, audioFormat);
 
-                    List<Double> frequencies = getPSD(channelBuffer, audioFormat.getFrameRate(), FREQUENCY_BIN_SIZE);
-
-                    for (int i = 0; i < NUMBER_OF_FREQ_OUTPUT; i++) {
-                        if (i < frequencies.size()) {
-                            row[rowIndex++] = frequencies.get(i);
-                        } else {
-                            row[rowIndex++] = null;
-                        }
-                    }
-
+                    row[rowIndex++] = startTime + length;
+                    row[rowIndex++] = length;
+                    row[rowIndex++] = buf;
+                    startTime += length;
                 }
 
                 rows.add(RowFactory.create(row));
-
             }
-
-            return sqlContext.createDataFrame(rows, getSchema(numberOfChannels, NUMBER_OF_FREQ_OUTPUT, FREQUENCY_BIN_SIZE));
-
+            return sqlContext.createDataFrame(rows, getSchema(numberOfChannels));
 
         } catch (UnsupportedAudioFileException e) {
             throw new IOException("Cannot read that type of Audio File");
@@ -104,54 +88,21 @@ public class AudioProcessor implements ProcessorInterface {
 
     }
 
-    private StructType getSchema(int numberOfChannels, int numberOfBins, double binWidth) {
+    private StructType getSchema(int numberOfChannels) {
 
-        StructField[] fields = new StructField[1 + numberOfChannels * numberOfBins];
+        StructField[] fields = new StructField[3 + numberOfChannels];
 
         int fieldIndex = 0;
-        fields[fieldIndex++] = new StructField("Time", DataTypes.DoubleType, false, Metadata.empty());
+        fields[fieldIndex++] = new StructField("Start Time", DataTypes.DoubleType, false, Metadata.empty());
+        fields[fieldIndex++] = new StructField("End Time", DataTypes.DoubleType, false, Metadata.empty());
+        fields[fieldIndex++] = new StructField("Window Length", DataTypes.DoubleType, false, Metadata.empty());
         for (int i = 0; i < numberOfChannels; i++) {
-            for (int j = 0; j < numberOfBins; j++) {
-                fields[fieldIndex++] = new StructField("Channel_" + i + "_frequency_" + j * binWidth, DataTypes.DoubleType, false, Metadata.empty());
-            }
+            fields[fieldIndex++] = new StructField("Channel_" + i, DataTypes.createArrayType(DataTypes.DoubleType), false, new MetadataBuilder().putLong(DataFrameUtils.CHANNEL_METADATA_KEY, (long) i).build());
         }
         return new StructType(fields);
     }
 
-    private double getTimeLength(int length, AudioFormat audioFormat) {
-        return (double) length / (audioFormat.getFrameRate() * audioFormat.getFrameSize());
-    }
-
-    private List<Double> getPSD(double[] buffer, float rate, double frequencyBinSize) {
-
-        FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
-        Complex resultC[] = fft.transform(buffer, TransformType.FORWARD);
-
-        return getPowerSpectralDensity(resultC, rate, frequencyBinSize);
-    }
-
-    private List<Double> getPowerSpectralDensity(Complex[] frequncyDomainBuffer, float sampleFrequency, double frequencyBinSize) {
-
-        List<Double> result = new ArrayList<>();
-
-        int samplesPerBin = (int) Math.round(frequencyBinSize / sampleFrequency * frequncyDomainBuffer.length);
-
-        for (int i = 0; i < frequncyDomainBuffer.length-samplesPerBin; i += samplesPerBin) {
-
-            double powerDensity = 0;
-            for (int binIndex = i; binIndex < i+samplesPerBin; binIndex++) {
-                double real = frequncyDomainBuffer[binIndex].getReal();
-                double imaginary = frequncyDomainBuffer[binIndex].getImaginary();
-                powerDensity += ((real * real + imaginary * imaginary) / sampleFrequency);
-            }
-            result.add(powerDensity);
-        }
-
-        return result;
-    }
-
-
-    private double[] getBuffer(byte[] bytesIn, int channelNumber, AudioFormat audioFormat) {
+    private List<Double> getBuffer(byte[] bytesIn, int channelNumber, AudioFormat audioFormat) {
 
         int numChannels = audioFormat.getChannels();
         int sampleSizeBytes = audioFormat.getSampleSizeInBits() / 8;
@@ -161,34 +112,13 @@ public class AudioProcessor implements ProcessorInterface {
         int startOffset = channelNumber * sampleSizeBytes;
         int sampleSize = (int) Math.pow(2, sampleSizeBytes * 8) / 2;
 
-        double[] buffer = new double[bufferSizePower2];
-        int idx = 0;
-        for (int i = startOffset; i < bytesIn.length && idx < bufferSize; i += step) {
+        List<Double> buffer = new ArrayList<>(bufferSizePower2);
+        for (int i = startOffset; i < bytesIn.length; i += step) {
             byte blow = bytesIn[i];
             byte bhigh = bytesIn[i + 1];
-            buffer[idx++] = (double) (blow & 0xFF | bhigh << 8) / sampleSize;
+            buffer.add((double) (blow & 0xFF | bhigh << 8) / sampleSize);
         }
         return buffer;
-    }
-
-    public double[] hanningWindow(double[] buffer) {
-        for (int n = 1; n < buffer.length; n++) {
-            buffer[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (buffer.length - 1)));
-        }
-        return buffer;
-    }
-
-    public static String closestKey(double freq) {
-        int key = closestKeyIndex(freq);
-        if (key <= 0) {
-            return null;
-        }
-        int range = 1 + (key - 1) / notes.length;
-        return notes[(key - 1) % notes.length] + range;
-    }
-
-    public static int closestKeyIndex(double freq) {
-        return 1 + (int) ((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
     }
 
     /*
@@ -196,7 +126,7 @@ public class AudioProcessor implements ProcessorInterface {
      are longer than the requested Length. There are interleaved channels
      accoridng to the original file
      */
-    private byte[] readBlock(AudioInputStream audioInputStream, AudioFormat audioFormat, int lengthSeconds) throws IOException {
+    private byte[] readBlock(AudioInputStream audioInputStream, AudioFormat audioFormat, double lengthSeconds) throws IOException {
 
         double bitsPerSecondPerChannel = audioFormat.getSampleSizeInBits() * audioFormat.getSampleRate();
 
@@ -209,4 +139,9 @@ public class AudioProcessor implements ProcessorInterface {
         return buffer;
 
     }
+
+    private double getTimeLength(int length, AudioFormat audioFormat) {
+        return (double) length / (audioFormat.getFrameRate() * audioFormat.getFrameSize());
+    }
+
 }
