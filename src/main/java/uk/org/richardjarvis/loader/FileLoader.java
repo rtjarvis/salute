@@ -22,6 +22,8 @@ import uk.org.richardjarvis.processor.audio.AudioProcessor;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
 import uk.org.richardjarvis.processor.text.TabularProcessor;
 import uk.org.richardjarvis.utils.SparkProvider;
+import uk.org.richardjarvis.writer.CSVWriter;
+import uk.org.richardjarvis.writer.WriterInterface;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -111,17 +113,17 @@ public class FileLoader {
 
                     TabularMasterDeriver masterDeriver = new TabularMasterDeriver();
                     derivedData = masterDeriver.derive(data, (TabularMetaData) metaData);
+
                 } else if (metaData instanceof AudioMetaData) {
+
                     AudioMasterDeriver masterDeriver = new AudioMasterDeriver();
                     derivedData = masterDeriver.derive(data, (AudioMetaData) metaData);
+
                 }
 
-                derivedData.write().format("json").save(outputPath);
+                WriterInterface writer = new CSVWriter();
 
-                derivedData.write()
-                        .format("com.databricks.spark.csv")
-                        .option("header", "true")
-                        .save(outputPath+".csv");
+                writer.write(derivedData,metaData,outputPath);
 
                 return true;
             }

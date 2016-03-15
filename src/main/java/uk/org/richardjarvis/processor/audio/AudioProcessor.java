@@ -67,17 +67,19 @@ public class AudioProcessor implements ProcessorInterface {
                 byte[] timeBuffer = readBlock(audioInputStream, audioFormat, TIME_WINDOW_LENGTH_SECONDS);
                 offset += timeBuffer.length;
 
+
                 for (int channel = 0; channel < numberOfChannels; channel++) {
 
                     List<Double> buf = getBuffer(timeBuffer, channel, audioFormat);
                     double length = getTimeLength(timeBuffer.length, audioFormat);
 
-                    row[rowIndex++] = startTime + length;
-                    row[rowIndex++] = length;
+                    if (channel == 0) {
+                        row[rowIndex++] = startTime + length;
+                        row[rowIndex++] = length;
+                        startTime += length;
+                    }
                     row[rowIndex++] = buf;
-                    startTime += length;
                 }
-
                 rows.add(RowFactory.create(row));
             }
             return sqlContext.createDataFrame(rows, getSchema(numberOfChannels));

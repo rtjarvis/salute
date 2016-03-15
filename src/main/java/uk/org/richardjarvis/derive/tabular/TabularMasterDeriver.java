@@ -17,6 +17,7 @@ public class TabularMasterDeriver implements TabularDeriveInterface {
         output = new ZIndexDeriver().derive(output, metaData);
         output = new CategoryPopularityDeriver().derive(output, metaData);
         output = new OneHotDeriver().derive(output, metaData);
+        output = new EntityDeriver().derive(output, metaData);
 
         return output;
     }
