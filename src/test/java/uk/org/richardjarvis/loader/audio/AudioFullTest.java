@@ -12,7 +12,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by rjarvis on 26/02/16.
  */
-public class FileLoaderTest {
+public class AudioFullTest {
 
 
     // Test audio file fom http://freemusicarchive.org/music/sawsquarenoise/RottenMage_SpaceJacked/RottenMage_SpaceJacked_OST_01#
@@ -24,7 +24,7 @@ public class FileLoaderTest {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/tone.wav");
+        URL testFile = getClass().getResource("/test.wav");
 
         FileLoader fl = new FileLoader();
 
@@ -42,7 +42,7 @@ public class FileLoaderTest {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/tone_2_channel.wav");
+        URL testFile = getClass().getResource("/tone_2_channel_fade.wav");
 
         FileLoader fl = new FileLoader();
 

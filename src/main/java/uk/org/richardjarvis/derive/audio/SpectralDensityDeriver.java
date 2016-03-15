@@ -73,7 +73,6 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
                     }
                 }
             }
-            System.out.println(fieldIndex + "," + newFieldCount);
             return RowFactory.create(outputRow);
 
         });

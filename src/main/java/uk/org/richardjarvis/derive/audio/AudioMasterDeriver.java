@@ -12,6 +12,7 @@ public class AudioMasterDeriver implements AudioDeriveInterface {
     public DataFrame derive(DataFrame input, AudioMetaData metaData) {
 
         DataFrame output = new SpectralDensityDeriver().derive(input, metaData);
+        output = new VolumeDeriver().derive(output, metaData);
         output = new RawDataRemover().derive(output, metaData);
 
         return output;
