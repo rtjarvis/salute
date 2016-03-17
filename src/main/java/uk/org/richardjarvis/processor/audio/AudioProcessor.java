@@ -34,6 +34,7 @@ public class AudioProcessor implements ProcessorInterface {
             AudioFileFormat audioFileFormat = AudioSystem.getAudioFileFormat(new File(path));
 
             metaData.setAudioFileFormat(audioFileFormat);
+            metaData.setTimeWindowLength(TIME_WINDOW_LENGTH_SECONDS);
 
         } catch (UnsupportedAudioFileException e) {
             throw new IOException("Cannot read that type of Audio File");

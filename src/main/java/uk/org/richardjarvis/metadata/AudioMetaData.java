@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioFileFormat;
  */
 public class AudioMetaData implements MetaData {
     private AudioFileFormat audioFileFormat;
+    private double timeWindowLength;
 
     public void setAudioFileFormat(AudioFileFormat audioFileFormat) {
         this.audioFileFormat = audioFileFormat;
@@ -14,5 +15,13 @@ public class AudioMetaData implements MetaData {
 
     public AudioFileFormat getAudioFileFormat() {
         return audioFileFormat;
+    }
+
+    public void setTimeWindowLength(double timeWindowLength) {
+        this.timeWindowLength = timeWindowLength;
+    }
+
+    public double getTimeWindowLength() {
+        return timeWindowLength;
     }
 }

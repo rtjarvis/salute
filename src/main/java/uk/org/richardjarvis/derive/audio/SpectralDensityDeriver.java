@@ -11,6 +11,7 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import uk.org.richardjarvis.metadata.AudioMetaData;
+import uk.org.richardjarvis.processor.audio.AudioProcessor;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.io.Serializable;
@@ -45,7 +46,7 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
 
         StructType newSchema = new StructType(newColumns.toArray(new StructField[0]));
         int originalFieldCount = input.schema().fieldNames().length;
-        int newFieldCount = originalFieldCount + audioColumnNames.size()*NUMBER_OF_FREQ_OUTPUT;
+        int newFieldCount = newColumns.size();
         float frameRate = metaData.getAudioFileFormat().getFormat().getFrameRate();
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
@@ -61,9 +62,12 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
             for (String column : audioColumnNames) {
 
                 List<Double> data = row.getList(row.fieldIndex(column));
-                double[] hanningWindowed = applyHanningWindow(data);
+                double[] buffer = applyHanningWindow(data);
 
-                List<Double> frequencies = getPSD(hanningWindowed, frameRate, FREQUENCY_BIN_SIZE);
+                FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
+                Complex spectrum[] = fft.transform(buffer, TransformType.FORWARD);
+
+                List<Double> frequencies = getPowerSpectralDensity(spectrum, frameRate, FREQUENCY_BIN_SIZE);
 
                 for (int i = 0; i < NUMBER_OF_FREQ_OUTPUT; i++) {
                     if (i < frequencies.size()) {
@@ -72,6 +76,7 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
                         outputRow[fieldIndex++] = null;
                     }
                 }
+                outputRow[fieldIndex++] = getSpectrumCentroid(frequencies, frameRate);
             }
             return RowFactory.create(outputRow);
 
@@ -86,17 +91,11 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
         List<StructField> fields = new ArrayList<>();
 
         for (int j = 0; j < numberOfBins; j++) {
-            fields.add(new StructField("Channel_" + channelNumber + "_Frequency_" + j * binWidth +"_Hz", DataTypes.DoubleType, false, Metadata.empty()));
+            fields.add(new StructField("Channel_" + channelNumber + "_Frequency_" + j * binWidth + "_Hz", DataTypes.DoubleType, false, Metadata.empty()));
         }
+
+        fields.add(new StructField("Channel_" + channelNumber + "_Spectral_Centroid_Hz", DataTypes.DoubleType, false, Metadata.empty()));
         return fields;
-    }
-
-    private List<Double> getPSD(double[] buffer, float rate, double frequencyBinSize) {
-
-        FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
-        Complex resultC[] = fft.transform(buffer, TransformType.FORWARD);
-
-        return getPowerSpectralDensity(resultC, rate, frequencyBinSize);
     }
 
     private List<Double> getPowerSpectralDensity(Complex[] frequncyDomainBuffer, float sampleFrequency, double frequencyBinSize) {
@@ -119,11 +118,30 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
         return result;
     }
 
+    private Double getSpectrumCentroid(List<Double> fft, double framerate) {
+
+        Double frequencyInterval = framerate / fft.size();
+        Double sumFreq = 0d;
+        Double sum = 0d;
+        for (int i = 0; i < fft.size()/2; i++) {
+            double mag = fft.get(i);
+            sumFreq += mag * (i + 0.5);
+            sum += mag;
+        }
+
+        Double spectrumCentroid = sumFreq / sum * frequencyInterval;
+        return spectrumCentroid;
+    }
+
+    private double getLength(Complex complex) {
+        return Math.sqrt(complex.getReal() * complex.getReal() + complex.getImaginary() * complex.getImaginary());
+    }
+
     public double[] applyHanningWindow(List<Double> buffer) {
 
         double[] buf = new double[buffer.size()];
         for (int n = 1; n < buffer.size(); n++) {
-            buf[n] = buffer.get(n)  * 0.5 * (1 - Math.cos((2 * Math.PI * n) / (buffer.size() - 1)));
+            buf[n] = buffer.get(n) * 0.5 * (1 - Math.cos((2 * Math.PI * n) / (buffer.size() - 1)));
         }
         return buf;
     }
