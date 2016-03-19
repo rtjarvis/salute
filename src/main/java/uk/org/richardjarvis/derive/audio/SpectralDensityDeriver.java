@@ -11,6 +11,7 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import uk.org.richardjarvis.metadata.AudioMetaData;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.processor.audio.AudioProcessor;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
@@ -31,22 +32,15 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
     @Override
     public DataFrame derive(DataFrame input, AudioMetaData metaData) {
 
-        List<StructField> newColumns = new ArrayList<>();
+        List<String> audioColumnNames = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.AUDIO_WAVEFORM));
 
-        newColumns.addAll(Arrays.asList(input.schema().fields()));
+        if (audioColumnNames.size()==0)
+            return input;
 
-        List<Column> audioColumns = DataFrameUtils.getAudioWaveformColumns(input);
+        StructType newSchema = getUpdatedSchema(input, metaData);
 
-        for (Column column : audioColumns) {
-            int channelNumber = (int) column.named().metadata().getLong(DataFrameUtils.CHANNEL_METADATA_KEY);
-            newColumns.addAll(getSpectralSchema(channelNumber, NUMBER_OF_FREQ_OUTPUT, FREQUENCY_BIN_SIZE));
-        }
-
-        List<String> audioColumnNames = DataFrameUtils.getAudioColumnsNames(input);
-
-        StructType newSchema = new StructType(newColumns.toArray(new StructField[0]));
         int originalFieldCount = input.schema().fieldNames().length;
-        int newFieldCount = newColumns.size();
+        int newFieldCount = audioColumnNames.size();
         float frameRate = metaData.getAudioFileFormat().getFormat().getFrameRate();
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
@@ -123,7 +117,7 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
         Double frequencyInterval = framerate / fft.size();
         Double sumFreq = 0d;
         Double sum = 0d;
-        for (int i = 0; i < fft.size()/2; i++) {
+        for (int i = 0; i < fft.size() / 2; i++) {
             double mag = fft.get(i);
             sumFreq += mag * (i + 0.5);
             sum += mag;
@@ -157,6 +151,22 @@ public class SpectralDensityDeriver implements AudioDeriveInterface, Serializabl
 
     public static int closestKeyIndex(double freq) {
         return 1 + (int) ((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
+    }
+
+    public StructType getUpdatedSchema(DataFrame input, AudioMetaData metaData) {
+
+        List<StructField> newColumns = new ArrayList<>();
+
+        newColumns.addAll(Arrays.asList(input.schema().fields()));
+
+        List<Column> audioColumns = DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.AUDIO_WAVEFORM);
+
+        for (Column column : audioColumns) {
+            int channelNumber = (int) column.named().metadata().getLong(DataFrameUtils.CHANNEL_METADATA_KEY);
+            newColumns.addAll(getSpectralSchema(channelNumber, NUMBER_OF_FREQ_OUTPUT, FREQUENCY_BIN_SIZE));
+        }
+
+        return new StructType(newColumns.toArray(new StructField[0]));
     }
 
 }

@@ -6,6 +6,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldStatistics;
 import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
@@ -21,7 +22,7 @@ public class CategoryPopularityDeriver implements TabularDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
-        List<String> stringColumns = DataFrameUtils.getStringColumnsNames(input);
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
 
         int originalFieldCount = input.schema().fieldNames().length;
         int stringFieldCount = stringColumns.size();
@@ -55,4 +56,6 @@ public class CategoryPopularityDeriver implements TabularDeriveInterface {
 
         return input.sqlContext().createDataFrame(output, structType);
     }
+
+
 }

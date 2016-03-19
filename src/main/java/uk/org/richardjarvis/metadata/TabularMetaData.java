@@ -12,13 +12,13 @@ import java.util.List;
 /**
  * Created by rjarvis on 26/02/16.
  */
-public class TabularMetaData  implements MetaData{
+public class TabularMetaData implements MetaData {
 
     private List<FieldProperties> fieldPropertiesList;
     private CSVProperties csvProperties;
     private String name;
     private boolean hasHeader;
-    private Statistics statistics=new Statistics();
+    private Statistics statistics = new Statistics();
     private String primaryTimeStampFieldName;
 
     public Statistics getStatistics() {
@@ -38,8 +38,8 @@ public class TabularMetaData  implements MetaData{
     }
 
     public TabularMetaData(CSVProperties csvProperties, List<FieldProperties> fieldPropertiesList) {
-        this.csvProperties=csvProperties;
-        this.fieldPropertiesList=fieldPropertiesList;
+        this.csvProperties = csvProperties;
+        this.fieldPropertiesList = fieldPropertiesList;
     }
 
     public CSVProperties getCsvProperties() {
@@ -67,7 +67,7 @@ public class TabularMetaData  implements MetaData{
     }
 
     public FieldProperties getFieldProperty(int index) {
-        if (fieldPropertiesList==null)
+        if (fieldPropertiesList == null)
             return null;
 
         return fieldPropertiesList.get(index);
@@ -90,7 +90,7 @@ public class TabularMetaData  implements MetaData{
 
         StructField[] fields = new StructField[fieldPropertiesList.size()];
 
-        for (int fieldIndex=0; fieldIndex< fields.length; fieldIndex++) {
+        for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
             fields[fieldIndex] = fieldPropertiesList.get(fieldIndex).getStructField();
         }
 
@@ -102,7 +102,7 @@ public class TabularMetaData  implements MetaData{
         List<FieldProperties> result = new ArrayList<>();
 
         for (FieldProperties fieldProperties : this.fieldPropertiesList) {
-            if (fieldProperties.getType()== DataTypes.DateType)
+            if (fieldProperties.getMeaning().getType() == DataTypes.DateType)
                 result.add(fieldProperties);
 
         }
@@ -115,7 +115,7 @@ public class TabularMetaData  implements MetaData{
         List<FieldProperties> result = new ArrayList<>();
 
         for (FieldProperties fieldProperties : this.fieldPropertiesList) {
-            if (DataFrameUtils.isNumericType(fieldProperties.getType()))
+            if (fieldProperties.getMeaning().getMeaningType() == FieldMeaning.MeaningType.NUMERIC)
                 result.add(fieldProperties);
 
         }

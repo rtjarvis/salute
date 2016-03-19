@@ -14,6 +14,7 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import uk.org.richardjarvis.metadata.AudioMetaData;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.io.Serializable;
@@ -29,20 +30,12 @@ public class VolumeDeriver implements AudioDeriveInterface, Serializable {
     @Override
     public DataFrame derive(DataFrame input, AudioMetaData metaData) {
 
-        List<StructField> newColumns = new ArrayList<>();
+        List<String> audioColumnNames = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.AUDIO_WAVEFORM));
 
-        newColumns.addAll(Arrays.asList(input.schema().fields()));
+        if (audioColumnNames.size()==0)
+            return input;
 
-        List<Column> audioColumns = DataFrameUtils.getAudioWaveformColumns(input);
-
-        for (Column column : audioColumns) {
-            int channelNumber = (int) column.named().metadata().getLong(DataFrameUtils.CHANNEL_METADATA_KEY);
-            newColumns.addAll(getVolumeSchema(channelNumber));
-        }
-
-        List<String> audioColumnNames = DataFrameUtils.getAudioColumnsNames(input);
-
-        StructType newSchema = new StructType(newColumns.toArray(new StructField[0]));
+        StructType newSchema = getUpdatedSchema(input,metaData);
         int originalFieldCount = input.schema().fieldNames().length;
         int newFieldCount = originalFieldCount + audioColumnNames.size();
 
@@ -90,6 +83,24 @@ public class VolumeDeriver implements AudioDeriveInterface, Serializable {
             sumSquares+=v*v;
         }
         return Math.sqrt(sumSquares/buffer.size());
+    }
+
+    private StructType getUpdatedSchema(DataFrame input, AudioMetaData metaData) {
+        List<StructField> newColumns = new ArrayList<>();
+
+        newColumns.addAll(Arrays.asList(input.schema().fields()));
+
+        List<Column> audioColumns = DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.AUDIO_WAVEFORM);
+
+        for (Column column : audioColumns) {
+            int channelNumber = (int) column.named().metadata().getLong(DataFrameUtils.CHANNEL_METADATA_KEY);
+            newColumns.addAll(getVolumeSchema(channelNumber));
+        }
+
+        List<String> audioColumnNames = DataFrameUtils.getColumnsNames(audioColumns);
+
+        return new StructType(newColumns.toArray(new StructField[0]));
+
     }
 
 }

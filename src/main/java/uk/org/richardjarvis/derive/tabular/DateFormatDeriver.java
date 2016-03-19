@@ -2,12 +2,11 @@ package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.*;
-import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.*;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldProperties;
 import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.utils.field.Recogniser;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -42,12 +41,14 @@ public class DateFormatDeriver implements TabularDeriveInterface {
 
         List<FieldProperties> columns = metaData.getRawDateFields();
 
-        if (columns.size()==0)
+        StructType updatedSchema = getUpdatedSchema(input, metaData);
+
+        if (columns.size() == 0)
             return input;
 
         int originalFieldCount = input.schema().fieldNames().length;
         int additionalFieldCount = columns.size();
-        int newFieldCount = originalFieldCount + additionalFieldCount*timePeriods.size();
+        int newFieldCount = updatedSchema.size();
 
         JavaRDD<Row> output = input.javaRDD().map(row -> {
 
@@ -64,7 +65,7 @@ public class DateFormatDeriver implements TabularDeriveInterface {
 
                 String value = row.getString(columnIndex);
 
-                DateTimeFormatter formatter = columns.get(i).getDateFormattter();
+                DateTimeFormatter formatter = columns.get(i).getMeaning().getDateFormattter();
                 ZonedDateTime date = ZonedDateTime.parse(value, formatter);
 
                 outputRow[fieldIndex++] = date.getSecond();
@@ -81,21 +82,34 @@ public class DateFormatDeriver implements TabularDeriveInterface {
             return RowFactory.create(outputRow);
         });
 
+        metaData.setPrimaryTimeStampFieldName(getName(columns.get(0), "EpochTime"));
+
+        return input.sqlContext().createDataFrame(output, updatedSchema);
+
+    }
+
+    private StructType getUpdatedSchema(DataFrame input, TabularMetaData metaData) {
+
+        List<FieldProperties> columns = metaData.getRawDateFields();
+
         StructType structType = input.schema();
         for (FieldProperties fieldProperties : columns) {
             for (String timePeriod : timePeriods.keySet()) {
-                structType = structType.add(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod));
+
+                MetadataBuilder metadataBuilder = new MetadataBuilder();
+                metadataBuilder.putString(FieldProperties.MEANING_METADATA, FieldMeaning.MeaningType.DATE_PART.name());
+                StructField field= new StructField(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod), false, metadataBuilder.build());
+
+                structType = structType.add(field);
             }
         }
-
-        metaData.setPrimaryTimeStampFieldName(getName(columns.get(0), "EpochTime"));
-
-        return input.sqlContext().createDataFrame(output, structType);
-
+        return structType;
     }
 
     private String getName(FieldProperties fieldProperties, String timePeriod) {
         return fieldProperties.getName() + "_" + timePeriod;
     }
+
+
 }
 

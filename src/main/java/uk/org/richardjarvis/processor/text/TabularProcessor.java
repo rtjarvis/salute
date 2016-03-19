@@ -142,13 +142,9 @@ public class TabularProcessor implements ProcessorInterface {
             FieldProperties firstRow = firstRowFieldPropertiesList.get(fieldIndex);
             FieldProperties remainingRows = bulkFieldPropertiesList.get(fieldIndex);
 
-            if (firstRow.getType() == DataTypes.StringType && remainingRows.getType() != DataTypes.StringType)
-                hasHeaderRow = true;
-
-            if (firstRow.getMaxLength() > remainingRows.getMaxLength())
-                hasHeaderRow = true;
-
-            if (firstRow.getMinLength() < remainingRows.getMinLength())
+            System.out.println(firstRow.toString());
+            System.out.println(remainingRows.toString());
+            if (firstRow.getMeaning().getType() == DataTypes.StringType && (remainingRows.getMeaning().getType() != DataTypes.StringType || remainingRows.getMeaning().getMeaningType() != firstRow.getMeaning().getMeaningType()))
                 hasHeaderRow = true;
 
         }

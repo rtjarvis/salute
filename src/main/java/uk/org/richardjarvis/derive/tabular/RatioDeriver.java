@@ -20,6 +20,9 @@ public class RatioDeriver implements TabularDeriveInterface {
 
         List<FieldProperties> numericColumns = metaData.getNumericFields();
 
+        if (numericColumns.size() == 0)
+            return input;
+
         int numericColumnCount = numericColumns.size();
 
         for (int numerator = 0; numerator < numericColumnCount; numerator++) {

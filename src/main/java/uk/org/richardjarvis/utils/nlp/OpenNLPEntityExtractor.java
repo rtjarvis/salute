@@ -9,6 +9,7 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +27,7 @@ public class OpenNLPEntityExtractor implements Serializable {
     public static final String ORGANISATIONS_MODEL = "organisations";
     public static final String DATES_MODEL = "dates";;
 
-    public static final List<String> MODEL_NAMES  = Arrays.asList(NAME_MODEL,MONEY_MODEL,LOCATIONS_MODEL,ORGANISATIONS_MODEL,DATES_MODEL);
+    public static final Map<String, FieldMeaning.MeaningType> MODELS = new HashMap<>();
 
     static PooledTokenNameFinderModel nameModel = null;
     static PooledTokenNameFinderModel orgModel = null;
@@ -36,6 +37,12 @@ public class OpenNLPEntityExtractor implements Serializable {
     static TokenizerModel tm = null;
 
     static {
+
+        MODELS.put(NAME_MODEL, FieldMeaning.MeaningType.NAME);
+        MODELS.put(MONEY_MODEL, FieldMeaning.MeaningType.MONEY);
+        MODELS.put(LOCATIONS_MODEL, FieldMeaning.MeaningType.LOCATION);
+        MODELS.put(ORGANISATIONS_MODEL, FieldMeaning.MeaningType.ORGANISATION);
+        MODELS.put(DATES_MODEL, FieldMeaning.MeaningType.DATE);
 
         InputStream pis = OpenNLPEntityExtractor.class.getResourceAsStream("/en-ner-person.bin");
         InputStream ois = OpenNLPEntityExtractor.class.getResourceAsStream("/en-ner-organization.bin");

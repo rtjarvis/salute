@@ -8,14 +8,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
-import uk.org.richardjarvis.metadata.FieldStatistics;
-import uk.org.richardjarvis.metadata.MetaData;
-import uk.org.richardjarvis.metadata.Statistics;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import org.apache.spark.sql.types.*;
+import uk.org.richardjarvis.metadata.*;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;
@@ -27,21 +21,16 @@ public class OneHotDeriver implements TabularDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
-        List<StructField> newColumns = new ArrayList<>();
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
 
-        newColumns.addAll(Arrays.asList(input.schema().fields()));
+        if (stringColumns.size()==0)
+            return input;
 
-        List<String> stringColumns = DataFrameUtils.getStringColumnsNames(input);
-
-        for (String column : stringColumns) {
-            newColumns.addAll(getFields(column, metaData.getStatistics().get(column)));
-        }
-
-        StructType newSchema = new StructType(newColumns.toArray(new StructField[0]));
+        StructType updatedSchema = getUpdatedSchema(input, metaData);
 
         Statistics statistics = metaData.getStatistics();
         int originalFieldCount = input.schema().fieldNames().length;
-        int newFieldCount = newColumns.size();
+        int newFieldCount = updatedSchema.size();
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
 
@@ -77,7 +66,23 @@ public class OneHotDeriver implements TabularDeriveInterface {
 
         });
 
-        return input.sqlContext().createDataFrame(rows, newSchema);
+        return input.sqlContext().createDataFrame(rows, updatedSchema);
+    }
+
+
+    private StructType getUpdatedSchema(DataFrame input, TabularMetaData metaData) {
+
+        List<StructField> newColumns = new ArrayList<>();
+
+        newColumns.addAll(Arrays.asList(input.schema().fields()));
+
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
+
+        for (String column : stringColumns) {
+            newColumns.addAll(getFields(column, metaData.getStatistics().get(column)));
+        }
+
+        return new StructType(newColumns.toArray(new StructField[0]));
     }
 
     private List<StructField> getFields(String fieldName, FieldStatistics statistics) {
@@ -85,7 +90,8 @@ public class OneHotDeriver implements TabularDeriveInterface {
         List<StructField> fields = new ArrayList<>();
 
         for (String columnName : statistics.getFrequencyList()) {
-            fields.add(new StructField(fieldName + "=" + columnName, DataTypes.IntegerType, false, Metadata.empty()));
+            Metadata metadata = new MetadataBuilder().putString(FieldProperties.MEANING_METADATA, FieldMeaning.MeaningType.ONE_HOT.name()).build();
+            fields.add(new StructField(fieldName + "=" + columnName, DataTypes.IntegerType, false, metadata));
         }
 
         return fields;

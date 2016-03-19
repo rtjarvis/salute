@@ -1,13 +1,13 @@
 package uk.org.richardjarvis.derive.tabular;
 
+import org.apache.hadoop.hdfs.protocol.datatransfer.Op;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.*;
+import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.FieldProperties;
 import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
@@ -28,20 +28,15 @@ public class EntityDeriver implements TabularDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
-        List<StructField> newColumns = new ArrayList<>();
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
 
-        newColumns.addAll(Arrays.asList(input.schema().fields()));
+        if (stringColumns.size()==0)
+            return input;
 
-        List<String> stringColumns = DataFrameUtils.getStringColumnsNames(input);
-
-        for (String column : stringColumns) {
-            newColumns.addAll(getFields(column));
-        }
-
-        StructType newSchema = new StructType(newColumns.toArray(new StructField[0]));
+        StructType newSchema = getUpdatedSchema(input, metaData);
 
         int originalFieldCount = input.schema().fieldNames().length;
-        int newFieldCount = originalFieldCount + stringColumns.size() * OpenNLPEntityExtractor.MODEL_NAMES.size() * NUMBER_OF_ENTITY_CATEGORIES;
+        int newFieldCount = originalFieldCount + stringColumns.size() * OpenNLPEntityExtractor.MODELS.keySet().size() * NUMBER_OF_ENTITY_CATEGORIES;
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
 
@@ -59,7 +54,7 @@ public class EntityDeriver implements TabularDeriveInterface {
 
                 Map<String, List<String>> entities = OpenNLPEntityExtractor.getResults(value);
 
-                for (String modelName : OpenNLPEntityExtractor.MODEL_NAMES) {
+                for (String modelName : OpenNLPEntityExtractor.MODELS.keySet()) {
 
                     List<String> modelEntities = entities.get(modelName);
 
@@ -91,13 +86,29 @@ public class EntityDeriver implements TabularDeriveInterface {
 
         List<StructField> fields = new ArrayList<>();
 
-        for (String modelName : OpenNLPEntityExtractor.MODEL_NAMES) {
+        for (String modelName : OpenNLPEntityExtractor.MODELS.keySet()) {
             for (int i = 0; i < NUMBER_OF_ENTITY_CATEGORIES; i++) {
-                fields.add(new StructField(fieldName + "_" + modelName + "_" + i, DataTypes.StringType, false, Metadata.empty()));
+                Metadata metadata = new MetadataBuilder().putString(FieldProperties.MEANING_METADATA, OpenNLPEntityExtractor.MODELS.get(modelName).name()).build();
+                fields.add(new StructField(fieldName + "_" + modelName + "_" + i, DataTypes.StringType, false, metadata));
             }
         }
         return fields;
 
+    }
+
+    private StructType getUpdatedSchema(DataFrame input, TabularMetaData metaData) {
+
+        List<StructField> newColumns = new ArrayList<>();
+
+        newColumns.addAll(Arrays.asList(input.schema().fields()));
+
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
+
+        for (String column : stringColumns) {
+            newColumns.addAll(getFields(column));
+        }
+
+        return new StructType(newColumns.toArray(new StructField[0]));
     }
 
 }

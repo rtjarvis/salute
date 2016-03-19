@@ -4,6 +4,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldStatistics;
 import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
@@ -22,15 +23,17 @@ public class StatisticsDeriver implements TabularDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
-        List<String> numericColumns = DataFrameUtils.getNumericColumnsNames(input);
+        List<String> numericColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.NUMERIC));
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
+
+        if (numericColumns.size()==0 && stringColumns.size()==0)
+            return input;
 
         if (numericColumns.size() > 0) {
             metaData.getStatistics().coalesce(calculateNumericStats(input, numericColumns));
         } else {
             metaData.getStatistics().setCount(input.count());
         }
-
-        List<String> stringColumns = DataFrameUtils.getStringColumnsNames(input);
 
         calculateCategoryStats(input, stringColumns, metaData.getStatistics());
 

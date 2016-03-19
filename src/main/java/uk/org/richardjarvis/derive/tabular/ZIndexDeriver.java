@@ -20,6 +20,9 @@ public class ZIndexDeriver implements TabularDeriveInterface {
 
         List<FieldProperties> numericColumns = metaData.getNumericFields();
 
+        if (numericColumns.size()==0)
+            return input;
+
         int numericColumnCount = numericColumns.size();
 
         DataFrame output = input;

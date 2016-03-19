@@ -6,7 +6,9 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldProperties;
+import uk.org.richardjarvis.utils.field.Recogniser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,20 +20,26 @@ public class DataFrameUtils {
 
     public static final String CHANNEL_METADATA_KEY = "Channel";
 
-    private static List<Column> getTypeOfColumns(DataFrame input, Type type) {
+    public static List<Column> getColumnsOfMeaning(DataFrame input, FieldMeaning.MeaningType type) {
 
         List<Column> matchingColumns = new ArrayList<>();
 
-        StructType schema = input.schema();
-
-        for (StructField field : schema.fields()) {
-
-            if (getType(field) == type) {
-                matchingColumns.add(input.col(field.name()));
+        for (StructField field : input.schema().fields()) {
+            FieldMeaning.MeaningType fieldType = getType(field);
+            if (fieldType.equals(type)) {
+                String f = field.name();
+                Column col = input.col(f);
+                matchingColumns.add(col);
             }
         }
 
         return matchingColumns;
+    }
+
+    private static FieldMeaning.MeaningType getType(StructField field) {
+        if (!field.metadata().contains(FieldProperties.MEANING_METADATA))
+            return Recogniser.getDataTypeMeaning(field.dataType());
+        return FieldMeaning.MeaningType.valueOf(field.metadata().getString(FieldProperties.MEANING_METADATA));
     }
 
     public static List<String> getColumnsNames(List<Column> columns) {
@@ -44,90 +52,5 @@ public class DataFrameUtils {
         return columnNames;
     }
 
-    public static List<Column> getNumericColumns(DataFrame input) {
-        return getTypeOfColumns(input, Type.NUMERIC);
-    }
-
-    public static List<String> getNumericColumnsNames(DataFrame input) {
-
-        return getColumnsNames(getNumericColumns(input));
-
-    }
-
-    public static List<Column> getStringColumns(DataFrame input) {
-
-        return getTypeOfColumns(input, Type.STRING);
-    }
-
-    public static List<String> getStringColumnsNames(DataFrame input) {
-
-        return getColumnsNames(getStringColumns(input));
-
-    }
-
-    public static List<Integer> getColumnIndexes(DataFrame input, List<Column> columns) {
-
-        List<Integer> indexes = new ArrayList<>(columns.size());
-
-        for (Column column : columns) {
-            indexes.add(input.schema().fieldIndex(column.expr().prettyString()));
-        }
-
-        return indexes;
-
-    }
-
-    public static boolean isNumericType(DataType dataType) {
-        return (dataType.sameType(DataTypes.DoubleType) ||
-                dataType.sameType(DataTypes.IntegerType) ||
-                dataType.sameType(DataTypes.FloatType) ||
-                dataType.sameType(DataTypes.ShortType) ||
-                dataType.sameType(DataTypes.LongType));
-
-    }
-
-    public static boolean isNumericType(StructField dataType) {
-
-        return isNumericType(dataType.dataType());
-    }
-
-    public static boolean isStringType(StructField dataType) {
-
-        return (dataType.dataType().sameType(DataTypes.StringType) &&
-                !dataType.metadata().contains(FieldProperties.DATE_FORMAT_METADATA));
-
-    }
-
-    public static Type getType(StructField dataType) {
-
-        if (isNumericType(dataType))
-            return Type.NUMERIC;
-        if (isDateType(dataType))
-            return Type.DATE;
-        if (isStringType(dataType))
-            return Type.STRING;
-        if (isAudioWaveForm(dataType))
-            return Type.AUDIO_WAVEFORM;
-
-        return Type.UNKNOWN;
-    }
-
-    private static boolean isAudioWaveForm(StructField dataType) {
-        return dataType.metadata().contains(CHANNEL_METADATA_KEY);
-    }
-
-    public static boolean isDateType(StructField dataType) {
-        return (dataType.dataType().sameType(DataTypes.DateType));
-    }
-
-    public static List<String> getAudioColumnsNames(DataFrame input) {
-        return getColumnsNames(getTypeOfColumns(input, Type.AUDIO_WAVEFORM));
-    }
-
-    public static List<Column> getAudioWaveformColumns(DataFrame input) {
-        return getTypeOfColumns(input, Type.AUDIO_WAVEFORM);
-    }
-
-    public enum Type {AUDIO_WAVEFORM, NUMERIC, STRING, UNKNOWN, DATE}
 
 }
