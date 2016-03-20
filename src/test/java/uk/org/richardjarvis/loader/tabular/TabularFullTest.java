@@ -61,4 +61,19 @@ public class TabularFullTest {
         fl.process(testFile.getPath(), outputDir);
 
     }
+
+    @Test
+    public void testProcess4() throws Exception {
+
+        String outputDir = "/tmp/test3.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
+
+        URL testFile = getClass().getResource("/csv_with_ip.csv");
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(testFile.getPath(), outputDir);
+
+    }
 }

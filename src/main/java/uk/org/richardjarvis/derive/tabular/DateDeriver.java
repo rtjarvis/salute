@@ -40,8 +40,6 @@ public class DateDeriver {
 
         StructType schema = createSchema(idColumnName, aspects, cubeValues);
 
-        System.out.println(schema.fieldNames().length);
-
         int aspecstSize = aspects.size();
 
         JavaPairRDD<String, ? extends Iterable<? extends Event>> groupedRows = rdd.groupBy(event -> {

@@ -1,6 +1,7 @@
 package uk.org.richardjarvis.metadata;
 
 import org.apache.spark.sql.types.*;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 import uk.org.richardjarvis.utils.field.Recogniser;
 
 import java.io.Serializable;
@@ -11,8 +12,6 @@ import java.util.List;
  */
 public class FieldProperties implements MetaData, Serializable {
 
-    public static final String FORMAT_METADATA = "format";
-    public static final String MEANING_METADATA = "meaning";
     private String name;
     private List<FieldMeaning> possibleMeanings = null;
     private boolean nullable = true;
@@ -57,17 +56,10 @@ public class FieldProperties implements MetaData, Serializable {
 
         DataType type = getMeaning().getType();
 
-        MetadataBuilder metadataBuilder = new MetadataBuilder();
-        String format = getMeaning().getFormat();
-        if (format != null)
-            metadataBuilder.putString(FORMAT_METADATA, format);
-        FieldMeaning.MeaningType meaningType = getMeaning().getMeaningType();
-        if (meaningType != null)
-            metadataBuilder.putString(MEANING_METADATA, meaningType.name());
-        return new StructField(getName(), type, isNullable(), metadataBuilder.build());
+        Metadata metadata = DataFrameUtils.getMetadata(getMeaning().getMeaningType(), getMeaning().getFormat());
+        return new StructField(getName(), type, isNullable(), metadata);
 
     }
-
 
     @Override
     public String toString() {

@@ -6,10 +6,8 @@ import org.apache.spark.sql.types.*;
 import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldProperties;
 import uk.org.richardjarvis.metadata.TabularMetaData;
-import uk.org.richardjarvis.utils.field.Recogniser;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -97,7 +95,7 @@ public class DateFormatDeriver implements TabularDeriveInterface {
             for (String timePeriod : timePeriods.keySet()) {
 
                 MetadataBuilder metadataBuilder = new MetadataBuilder();
-                metadataBuilder.putString(FieldProperties.MEANING_METADATA, FieldMeaning.MeaningType.DATE_PART.name());
+                metadataBuilder.putString(DataFrameUtils.MEANING_METADATA, FieldMeaning.MeaningType.DATE_PART.name());
                 StructField field= new StructField(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod), false, metadataBuilder.build());
 
                 structType = structType.add(field);

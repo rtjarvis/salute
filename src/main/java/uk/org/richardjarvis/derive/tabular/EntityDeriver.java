@@ -1,14 +1,11 @@
 package uk.org.richardjarvis.derive.tabular;
 
-import org.apache.hadoop.hdfs.protocol.datatransfer.Op;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.*;
 import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.FieldProperties;
-import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 import uk.org.richardjarvis.utils.nlp.OpenNLPEntityExtractor;
@@ -88,7 +85,7 @@ public class EntityDeriver implements TabularDeriveInterface {
 
         for (String modelName : OpenNLPEntityExtractor.MODELS.keySet()) {
             for (int i = 0; i < NUMBER_OF_ENTITY_CATEGORIES; i++) {
-                Metadata metadata = new MetadataBuilder().putString(FieldProperties.MEANING_METADATA, OpenNLPEntityExtractor.MODELS.get(modelName).name()).build();
+                Metadata metadata = new MetadataBuilder().putString(DataFrameUtils.MEANING_METADATA, OpenNLPEntityExtractor.MODELS.get(modelName).name()).build();
                 fields.add(new StructField(fieldName + "_" + modelName + "_" + i, DataTypes.StringType, false, metadata));
             }
         }

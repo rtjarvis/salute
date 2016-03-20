@@ -90,7 +90,7 @@ public class OneHotDeriver implements TabularDeriveInterface {
         List<StructField> fields = new ArrayList<>();
 
         for (String columnName : statistics.getFrequencyList()) {
-            Metadata metadata = new MetadataBuilder().putString(FieldProperties.MEANING_METADATA, FieldMeaning.MeaningType.ONE_HOT.name()).build();
+            Metadata metadata = new MetadataBuilder().putString(DataFrameUtils.MEANING_METADATA, FieldMeaning.MeaningType.ONE_HOT.name()).build();
             fields.add(new StructField(fieldName + "=" + columnName, DataTypes.IntegerType, false, metadata));
         }
 
