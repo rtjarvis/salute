@@ -5,18 +5,13 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
-import sun.nio.ch.Net;
+import org.apache.spark.sql.types.*;
+import scala.Tuple2;
 import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 import uk.org.richardjarvis.utils.network.NetworkUtils;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,14 +28,16 @@ public class GeoIPDeriver implements TabularDeriveInterface {
 
         if (ipColumns.size() == 0)
             return input;
+        DataFrame lookupDF = NetworkUtils.getGeoIPData(input.sqlContext());
+        List<Row> lookup = lookupDF.collectAsList();
 
-        StructType updatedSchema = getUpdatedSchema(input, metaData);
+        StructType updatedSchema = getUpdatedSchema(input);
 
-        DataFrame lookup = NetworkUtils.getGeoCities(input.sqlContext());
-
-        Row[] lookupRows = lookup.collect();
         int originalFieldCount = input.schema().fieldNames().length;
         int newFieldCount = updatedSchema.size();
+
+        int lowerSubnetFieldIndex = lookupDF.schema().fieldIndex(NetworkUtils.NETWORK_COLUMN + NetworkUtils.SUBNET_LOWER_RANGE_NAME);
+        int upperSubnetFieldIndex = lookupDF.schema().fieldIndex(NetworkUtils.NETWORK_COLUMN + NetworkUtils.SUBNET_UPPER_RANGE_NAME);
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
 
@@ -52,37 +49,40 @@ public class GeoIPDeriver implements TabularDeriveInterface {
                 fieldIndex++;
             }
 
-            for (String col : ipColumns) {
+            for (String ipColumn : ipColumns) {
+
+                Long value = NetworkUtils.getAddress(row.getString(row.fieldIndex(ipColumn)));
 
                 Row match = null;
-                for (Row lookupRow : lookupRows) {
-                    String networkSubnet = lookupRow.getString(0);
-                    String ip = row.getString(row.fieldIndex(col));
-                    if (NetworkUtils.netMatch(ip, networkSubnet)) {
+
+                for (Row lookupRow : lookup) {
+                    long lowerNet = lookupRow.getLong(lowerSubnetFieldIndex);
+                    long upperNet = lookupRow.getLong(upperSubnetFieldIndex);
+
+                    if (lowerNet <= value && upperNet >= value) {
                         match = lookupRow;
                         break;
                     }
                 }
 
-                if (match!=null) {
-                    for(int i=0; i< match.size(); i++) {
-                        outputRow[fieldIndex++] = match.get(i);
-                    }
-                } else {
-                    fieldIndex+=lookupRows[0].size();
+                if (match != null) {
+                    outputRow[fieldIndex++] = match.get(match.fieldIndex("latitude"));
+                    outputRow[fieldIndex++] = match.get(match.fieldIndex("longitude"));
+                    outputRow[fieldIndex++] = match.get(match.fieldIndex("country_name"));
                 }
-
             }
-                return RowFactory.create(outputRow);
+
+            return RowFactory.create(outputRow);
+
 
         });
 
-        Row test = rows.first();
         return input.sqlContext().createDataFrame(rows, updatedSchema);
+
     }
 
 
-    private StructType getUpdatedSchema(DataFrame input, TabularMetaData metaData) {
+    private StructType getUpdatedSchema(DataFrame input) {
 
         List<StructField> newColumns = new ArrayList<>();
 
@@ -90,12 +90,10 @@ public class GeoIPDeriver implements TabularDeriveInterface {
 
         List<String> ipColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.IPv4));
 
-        StructType lookupSchema = NetworkUtils.getIPv4BlocksSchema();
-
         for (String column : ipColumns) {
-            for (StructField field : lookupSchema.fields()) {
-                newColumns.add(new StructField(column + "_" + field.name(), field.dataType(), field.nullable(), field.metadata()));
-            }
+            newColumns.add(new StructField(column + "_latitude", DataTypes.DoubleType, true, Metadata.empty()));
+            newColumns.add(new StructField(column + "_longitude", DataTypes.DoubleType, true, Metadata.empty()));
+            newColumns.add(new StructField(column + "_country_name", DataTypes.StringType, true, Metadata.empty()));
         }
 
         return new StructType(newColumns.toArray(new StructField[0]));

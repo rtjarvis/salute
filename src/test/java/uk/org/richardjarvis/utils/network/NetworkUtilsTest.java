@@ -1,6 +1,7 @@
 package uk.org.richardjarvis.utils.network;
 
 import org.junit.Test;
+import scala.Tuple2;
 import uk.org.richardjarvis.derive.tabular.GeoIPDeriver;
 
 import static org.junit.Assert.*;
@@ -18,6 +19,27 @@ public class NetworkUtilsTest {
         boolean match = NetworkUtils.netMatch(testIP, testNet);
 
         assertTrue(match);
+
+    }
+
+    @Test
+    public void testGetSubnetBounds() throws Exception {
+
+        String testNet = "10.0.0.0/8";
+
+        Tuple2<Long, Long> bounds = NetworkUtils.getSubnetBounds(testNet);
+
+        assertEquals((Long)167772160l,bounds._1);
+        assertEquals((Long)184549375l,bounds._2);
+
+        testNet = "216.54.213.13/32";
+
+        bounds = NetworkUtils.getSubnetBounds(testNet);
+
+        assertEquals((Long)3627472141l,bounds._1);
+        assertEquals((Long)3627472141l,bounds._2);
+
+
 
     }
 }
