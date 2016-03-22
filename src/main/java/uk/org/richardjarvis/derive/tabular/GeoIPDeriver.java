@@ -1,12 +1,10 @@
 package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.*;
-import scala.Tuple2;
 import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
@@ -15,6 +13,7 @@ import uk.org.richardjarvis.utils.network.NetworkUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Created by rjarvis on 19/03/16.
@@ -28,8 +27,8 @@ public class GeoIPDeriver implements TabularDeriveInterface {
 
         if (ipColumns.size() == 0)
             return input;
-        DataFrame lookupDF = NetworkUtils.getGeoIPData(input.sqlContext());
-        List<Row> lookup = lookupDF.collectAsList();
+
+        DataFrame lookupDF = NetworkUtils.getGeoIPDataFrame(input.sqlContext());
 
         StructType updatedSchema = getUpdatedSchema(input);
 
@@ -38,6 +37,11 @@ public class GeoIPDeriver implements TabularDeriveInterface {
 
         int lowerSubnetFieldIndex = lookupDF.schema().fieldIndex(NetworkUtils.NETWORK_COLUMN + NetworkUtils.SUBNET_LOWER_RANGE_NAME);
         int upperSubnetFieldIndex = lookupDF.schema().fieldIndex(NetworkUtils.NETWORK_COLUMN + NetworkUtils.SUBNET_UPPER_RANGE_NAME);
+
+        JavaRDD<Row> lookupRDD = lookupDF.javaRDD();
+
+        int[] partitions = IntStream.range(0, lookupRDD.getNumPartitions()).toArray();
+        List<Row>[] lookupArray = lookupRDD.collectPartitions(partitions);
 
         JavaRDD<Row> rows = input.javaRDD().map(row -> {
 
@@ -52,29 +56,33 @@ public class GeoIPDeriver implements TabularDeriveInterface {
             for (String ipColumn : ipColumns) {
 
                 Long value = NetworkUtils.getAddress(row.getString(row.fieldIndex(ipColumn)));
+                Integer lookupPartion = NetworkUtils.getPartitionThatContainsIP(value);
 
                 Row match = null;
+                if (lookupPartion!=null) {
 
-                for (Row lookupRow : lookup) {
-                    long lowerNet = lookupRow.getLong(lowerSubnetFieldIndex);
-                    long upperNet = lookupRow.getLong(upperSubnetFieldIndex);
+                    for (Row lookupRow : lookupArray[lookupPartion]) {
 
-                    if (lowerNet <= value && upperNet >= value) {
-                        match = lookupRow;
-                        break;
+                        long lowerNet = lookupRow.getLong(lowerSubnetFieldIndex);
+                        long upperNet = lookupRow.getLong(upperSubnetFieldIndex);
+
+                        if (lowerNet <= value && upperNet >= value) {
+                            match = lookupRow;
+                            break;
+                        }
                     }
-                }
 
-                if (match != null) {
-                    outputRow[fieldIndex++] = match.get(match.fieldIndex("latitude"));
-                    outputRow[fieldIndex++] = match.get(match.fieldIndex("longitude"));
-                    outputRow[fieldIndex++] = match.get(match.fieldIndex("country_name"));
+                    if (match != null) {
+                        outputRow[fieldIndex++] = match.get(match.fieldIndex("latitude"));
+                        outputRow[fieldIndex++] = match.get(match.fieldIndex("longitude"));
+                        outputRow[fieldIndex++] = match.get(match.fieldIndex("country_name"));
+                    } else {
+                        System.out.println(lookupPartion +" does not contain " + value);
+                    }
                 }
             }
 
             return RowFactory.create(outputRow);
-
-
         });
 
         return input.sqlContext().createDataFrame(rows, updatedSchema);

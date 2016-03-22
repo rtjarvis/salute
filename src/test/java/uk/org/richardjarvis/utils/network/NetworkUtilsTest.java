@@ -39,7 +39,17 @@ public class NetworkUtilsTest {
         assertEquals((Long)3627472141l,bounds._1);
         assertEquals((Long)3627472141l,bounds._2);
 
+    }
 
+    @Test
+    public void loadGeoFileIndex() throws Exception {
+        NetworkUtils.loadGeoFileIndex();
 
+    }
+
+    @Test
+    public void getAddress() throws Exception {
+        long ip = NetworkUtils.getAddress("212.183.100.100");
+        assertEquals(3568788580l,ip);
     }
 }
