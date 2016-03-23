@@ -12,7 +12,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by rjarvis on 26/02/16.
  */
-public class AudioFullTest {
+public class AudioFullIT {
 
 
     // Test audio file fom http://freemusicarchive.org/music/sawsquarenoise/RottenMage_SpaceJacked/RottenMage_SpaceJacked_OST_01#

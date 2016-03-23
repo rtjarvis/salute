@@ -3,7 +3,8 @@ package uk.org.richardjarvis.utils.network;
 import org.junit.Test;
 import scala.Tuple2;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by rjarvis on 19/03/16.
@@ -37,12 +38,6 @@ public class NetworkUtilsTest {
 
         assertEquals((Long)3627472141l,bounds._1);
         assertEquals((Long)3627472141l,bounds._2);
-
-    }
-
-    @Test
-    public void loadGeoFileIndex() throws Exception {
-        GeoIPUtils.loadGeoFileIndex();
 
     }
 

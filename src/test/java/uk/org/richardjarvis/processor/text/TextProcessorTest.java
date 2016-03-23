@@ -1,15 +1,12 @@
 package uk.org.richardjarvis.processor.text;
 
-import org.apache.tika.io.IOUtils;
 import org.junit.Test;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by rjarvis on 26/02/16.

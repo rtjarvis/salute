@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 /**
  * Created by rjarvis on 22/02/16.
  */
-public class TabularFullTest {
+public class TabularFullIT {
 
     @Test
     public void testProcess() throws Exception {
