@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by rjarvis on 22/02/16.
+ * The main class that loads, processes and saves the input data
  */
 public class FileLoader {
 
@@ -51,6 +51,16 @@ public class FileLoader {
         this.tika = new Tika();
     }
 
+    /**
+     *
+     * @param inputPath the path of the input file that is to be processed
+     * @param outputPath the path of the output file that will be saved
+     * @return success of processing
+     * @throws IOException
+     * @throws CompressorException
+     * @throws ArchiveException
+     * @throws JSONException
+     */
     public boolean process(String inputPath, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
 
         LOGGER.info("Processing file : " + inputPath);

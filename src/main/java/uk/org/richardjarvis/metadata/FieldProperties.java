@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Created by rjarvis on 24/02/16.
+ * The properties for a field including its meaning and name
  */
 public class FieldProperties implements MetaData, Serializable {
 

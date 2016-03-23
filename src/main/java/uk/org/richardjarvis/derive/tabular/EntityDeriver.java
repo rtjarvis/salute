@@ -16,12 +16,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by rjarvis on 15/03/16.
+ * Extracts entites from text fields
  */
 public class EntityDeriver implements TabularDeriveInterface {
 
     private static final int NUMBER_OF_ENTITY_CATEGORIES = 5;
 
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched DataFrame with the top n (default:5) entites extracted from String columns
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
@@ -86,7 +92,7 @@ public class EntityDeriver implements TabularDeriveInterface {
         for (String modelName : OpenNLPEntityExtractor.MODELS.keySet()) {
             for (int i = 0; i < NUMBER_OF_ENTITY_CATEGORIES; i++) {
                 Metadata metadata = new MetadataBuilder().putString(DataFrameUtils.MEANING_METADATA, OpenNLPEntityExtractor.MODELS.get(modelName).name()).build();
-                fields.add(new StructField(fieldName + "_" + modelName + "_" + i, DataTypes.StringType, false, metadata));
+                fields.add(new StructField(fieldName + "_entity_" + modelName + "_" + i, DataTypes.StringType, false, metadata));
             }
         }
         return fields;

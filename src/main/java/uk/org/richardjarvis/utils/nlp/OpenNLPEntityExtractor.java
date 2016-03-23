@@ -21,11 +21,11 @@ public class OpenNLPEntityExtractor implements Serializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenNLPEntityExtractor.class);
 
-    public static final String NAME_MODEL = "name";
-    public static final String MONEY_MODEL = "money";
-    public static final String LOCATIONS_MODEL = "locations";
-    public static final String ORGANISATIONS_MODEL = "organisations";
-    public static final String DATES_MODEL = "dates";;
+    public static final String NAME_MODEL = "NAMES";
+    public static final String MONEY_MODEL = "MONEY";
+    public static final String LOCATIONS_MODEL = "LOCATIONS";
+    public static final String ORGANISATIONS_MODEL = "ORGANISATIONS";
+    public static final String DATES_MODEL = "DATES";;
 
     public static final Map<String, FieldMeaning.MeaningType> MODELS = new HashMap<>();
 

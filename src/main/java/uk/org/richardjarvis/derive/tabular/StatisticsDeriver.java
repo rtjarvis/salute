@@ -14,12 +14,18 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by rjarvis on 09/03/16.
+ * Calculates statistics on input columns. Provides no transformation
  */
 public class StatisticsDeriver implements TabularDeriveInterface {
 
     private static final int MAX_CARDINALITY = 10;
 
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return the input DataFrame
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 

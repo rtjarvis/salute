@@ -15,10 +15,15 @@ import uk.org.richardjarvis.utils.DataFrameUtils;
 import java.util.List;
 
 /**
- * Created by rjarvis on 08/03/16.
+ * Add the populatity of individual category values in relation to all category values
  */
 public class CategoryPopularityDeriver implements TabularDeriveInterface {
-
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched dataframe with an additional column per categorical variable containing the fraction of all distinct values that match this categorical variable
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 

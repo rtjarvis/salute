@@ -1,9 +1,5 @@
 package uk.org.richardjarvis.derive.tabular;
 
-/**
- * Created by rjarvis on 29/02/16.
- */
-
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
@@ -16,14 +12,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * One-hot encoder for categorical fields. Only includes top n categories and buckets remainder into _OTHER_ column
+ */
 public class OneHotDeriver implements TabularDeriveInterface {
 
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched DataFrame containing OneHot encoded columns for categorical variables
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
         List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
 
-        if (stringColumns.size()==0)
+        if (stringColumns.size() == 0)
             return input;
 
         StructType updatedSchema = getUpdatedSchema(input, metaData);

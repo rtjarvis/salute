@@ -6,7 +6,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Created by rjarvis on 18/03/16.
+ * Contains the semantic meaning of the field. This is assessed automatically by the values in the field.
  */
 public class FieldMeaning {
 

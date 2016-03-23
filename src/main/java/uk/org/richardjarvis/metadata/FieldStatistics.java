@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by rjarvis on 03/03/16.
+ * The caclulated statistics about the values in a field
  */
 public class FieldStatistics implements Serializable {
 

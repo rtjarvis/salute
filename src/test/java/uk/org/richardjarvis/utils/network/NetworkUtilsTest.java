@@ -2,7 +2,6 @@ package uk.org.richardjarvis.utils.network;
 
 import org.junit.Test;
 import scala.Tuple2;
-import uk.org.richardjarvis.derive.tabular.GeoIPDeriver;
 
 import static org.junit.Assert.*;
 
@@ -43,7 +42,7 @@ public class NetworkUtilsTest {
 
     @Test
     public void loadGeoFileIndex() throws Exception {
-        NetworkUtils.loadGeoFileIndex();
+        GeoIPUtils.loadGeoFileIndex();
 
     }
 

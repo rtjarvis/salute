@@ -9,12 +9,26 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Created by rjarvis on 24/02/16.
+ * The processsor for handling different file types
  */
 public interface ProcessorInterface {
 
+    /**
+     *
+     * @param path the input path for the file
+     * @return metadata detailing properties of the file
+     * @throws IOException
+     */
     MetaData extractMetaData(String path) throws IOException;
 
+    /**
+     *
+     * @param path the input path for the file
+     * @param metaData metadata detailing properties of the file
+     * @param sqlContext SparkSQLContext used to create returned DataFrame
+     * @return DataFrame containing the data for the file in @path
+     * @throws IOException
+     */
     DataFrame extractData(String path, MetaData metaData, SQLContext sqlContext) throws IOException;
 
 }

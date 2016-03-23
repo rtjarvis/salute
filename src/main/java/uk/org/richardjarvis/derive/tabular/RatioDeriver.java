@@ -10,11 +10,16 @@ import uk.org.richardjarvis.utils.DataFrameUtils;
 import java.util.List;
 
 /**
- * Created by rjarvis on 29/02/16.
+ * Derives ratios between numerical fields
  */
 public class RatioDeriver implements TabularDeriveInterface {
 
-
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched DataFrame with addtional fields that are the ratio between pairs of the original numerical columns
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 

@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Created by rjarvis on 29/02/16.
+ * Parses dates and extracts parts of date
  */
 public class DateFormatDeriver implements TabularDeriveInterface {
 
@@ -34,6 +34,12 @@ public class DateFormatDeriver implements TabularDeriveInterface {
 
     }
 
+    /**
+     *
+     * @param input the input dataframe
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched dataframe with an additional column per date variable containing the derived parts of the date (eg DayOfWeek, MonthOfYear etc)
+     */
     @Override
     public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 

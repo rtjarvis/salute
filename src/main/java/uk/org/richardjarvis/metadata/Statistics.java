@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by rjarvis on 09/03/16.
+ * Contains statistics on the whole dataset
  */
 public class Statistics implements Serializable {
 

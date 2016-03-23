@@ -14,7 +14,7 @@ import java.util.List;
 import static uk.org.richardjarvis.metadata.FieldMeaning.MeaningType;
 
 /**
- * Created by rjarvis on 18/03/16.
+ * Class for recognising the semantic of a String
  */
 public class Recogniser {
 
@@ -54,6 +54,10 @@ public class Recogniser {
 
     }
 
+    /**
+     * @param value the String to evaluate
+     * @return a list of possible meanings that this String could have. This includes semantic and DataType combinations
+     */
     public static List<FieldMeaning> getPossibleMeanings(String value) {
 
         List<FieldMeaning> fieldMeanings = new ArrayList<>();
@@ -83,6 +87,10 @@ public class Recogniser {
 
     }
 
+    /**
+     * @param type a Spark DataType for meaning assessment
+     * @return the meaning of the type
+     */
     public static MeaningType getDataTypeMeaning(DataType type) {
         if (type.sameType(DataTypes.ShortType) ||
                 type.sameType(DataTypes.LongType) ||
@@ -102,41 +110,52 @@ public class Recogniser {
         return MeaningType.TEXT;
 
     }
-        private static List<DataType> getPossibleDataTypes (String value){
 
-            List<DataType> types = new ArrayList<>();
+    /**
+     *
+     * @param value the String to be evaulated
+     * @return the possible DataTypes that the String could represent
+     */
+    private static List<DataType> getPossibleDataTypes(String value) {
 
-            for (Tuple2<String, DataType> regex : dataTypeRegex) {
-                if (value.matches(regex._1)) {
-                    types.add(regex._2);
-                }
+        List<DataType> types = new ArrayList<>();
+
+        for (Tuple2<String, DataType> regex : dataTypeRegex) {
+            if (value.matches(regex._1)) {
+                types.add(regex._2);
             }
-
-            if (!types.contains(DataTypes.StringType))
-                types.add(DataTypes.StringType);
-
-            return types;
         }
 
-        public static List<MeaningType> getPossibleFieldMeaningTypes (String value){
+        if (!types.contains(DataTypes.StringType))
+            types.add(DataTypes.StringType);
 
-            List<MeaningType> types = new ArrayList<>();
+        return types;
+    }
 
-            for (Tuple2<String, MeaningType> regex : meaningTypeRegex) {
-                if (value.matches(regex._1)) {
-                    types.add(regex._2);
-                }
+    /**
+     *
+     * @param value the String to be evaulated
+     * @return the possible MeaningTypes that could be represneted by this String
+     */
+    public static List<MeaningType> getPossibleFieldMeaningTypes(String value) {
+
+        List<MeaningType> types = new ArrayList<>();
+
+        for (Tuple2<String, MeaningType> regex : meaningTypeRegex) {
+            if (value.matches(regex._1)) {
+                types.add(regex._2);
             }
-
-            if (isDate(value))
-                types.add(MeaningType.DATE);
-
-            if (types.size() == 0)
-                types.add(MeaningType.TEXT);
-
-            return types;
-
         }
+
+        if (isDate(value))
+            types.add(MeaningType.DATE);
+
+        if (types.size() == 0)
+            types.add(MeaningType.TEXT);
+
+        return types;
+
+    }
 
     public static DataType getDataType(String value) {
 
@@ -155,7 +174,12 @@ public class Recogniser {
 
     }
 
-    public static List<String> getPossibleDateFormats(String value) { // returns null if not a date
+    /**
+     *
+     * @param value the String to be evaulated
+     * @return list of possible date formats that could be used to decode this date or null if not a date.
+     */
+    public static List<String> getPossibleDateFormats(String value) {
 
         LocalDate date = null;
 
@@ -180,6 +204,12 @@ public class Recogniser {
         return getPossibleDateFormats(value).size() > 0;
     }
 
+    /**
+     *
+     * @param possibleMeanings list of meanings that are currently possible for this value
+     * @param value the String to be evaulated
+     * @return an updated list of meanings (a subset of possibleMeanings) that also match value
+     */
     public static List<FieldMeaning> getPossibleFieldMeaningTypes(List<FieldMeaning> possibleMeanings, String value) {
 
         List<FieldMeaning> refinedMeanings = new ArrayList<>();

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by rjarvis on 29/02/16.
+ * Utils to return information about a DataFrame
  */
 public class DataFrameUtils {
 
@@ -18,6 +18,12 @@ public class DataFrameUtils {
     public static final String FORMAT_METADATA = "format";
     public static final String MEANING_METADATA = "meaning";
 
+    /**
+     *
+     * @param input the DataFrame to process
+     * @param type the type of Meaning of the columns to be returned
+     * @return list of columns that match the meaning requested
+     */
     public static List<Column> getColumnsOfMeaning(DataFrame input, FieldMeaning.MeaningType type) {
 
         List<Column> matchingColumns = new ArrayList<>();

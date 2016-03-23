@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.utils.FIle;
+package uk.org.richardjarvis.utils.file;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

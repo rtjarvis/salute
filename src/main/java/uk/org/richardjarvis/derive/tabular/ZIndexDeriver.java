@@ -11,10 +11,16 @@ import uk.org.richardjarvis.utils.DataFrameUtils;
 import java.util.*;
 
 /**
- * Created by rjarvis on 29/02/16.
+ * Calculates z-index values for all numeric columns. z-index is (x - avg(x))/stddev(x)
  */
 public class ZIndexDeriver implements TabularDeriveInterface {
 
+    /**
+     *
+      * @param input the input DataFrame
+     * @param metaData the metadata that describes the input dataframe
+     * @return an enriched DataFrame with additional numeric columns that contain the z-score for the original numeric
+     */
     @Override
     public DataFrame derive(DataFrame input,  TabularMetaData metaData) {
 
