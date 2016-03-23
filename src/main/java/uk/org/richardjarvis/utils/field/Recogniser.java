@@ -9,7 +9,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static uk.org.richardjarvis.metadata.FieldMeaning.MeaningType;
 
@@ -18,39 +20,38 @@ import static uk.org.richardjarvis.metadata.FieldMeaning.MeaningType;
  */
 public class Recogniser {
 
-    private static List<String> possibleDateTimeFormats;
-    private static List<Tuple2<String, DataType>> dataTypeRegex;
-    private static List<Tuple2<String, FieldMeaning.MeaningType>> meaningTypeRegex;
-
+    private static Set<FieldMeaning> typeSet;
 
     static {
 
-        possibleDateTimeFormats = new ArrayList<>();
-        possibleDateTimeFormats.add("yyyy.MM.dd G 'at' HH:mm:ss z");    // 	2001.07.04 AD at 12:08:56 PDT
-        possibleDateTimeFormats.add("EEE, MMM d, ''yy");                // 	Wed, Jul 4, '01
-        possibleDateTimeFormats.add("h:mm a");                          // 	12:08 PM
-        possibleDateTimeFormats.add("hh 'o''clock' a, zzzz");           // 	12 o'clock PM, Pacific Daylight Time
-        possibleDateTimeFormats.add("K:mm a, z");                       // 	0:08 PM, PDT
-        possibleDateTimeFormats.add("yyyyy.MMMMM.dd GGG hh:mm a");      // 	02001.July.04 AD 12:08 PM
-        possibleDateTimeFormats.add("EEE, d MMM yyyy HH:mm:ss Z");      // 	Wed, 4 Jul 2001 12:08:56 -0700
-        possibleDateTimeFormats.add("yyMMddHHmmssZ");                   // 	010704120856-0700
-        possibleDateTimeFormats.add("yyyy-MM-dd'T'HH:mm:ss.SSSZ");      // 	2001-07-04T12:08:56.235-0700
-        possibleDateTimeFormats.add("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");    // 	2001-07-04T12:08:56.235-07:00
-        possibleDateTimeFormats.add("YYYY-'W'ww-u");                    //  2001-W27-3
-        possibleDateTimeFormats.add("dd/MM/yy HH:mm");                  //  28/04/16 15:30
-        possibleDateTimeFormats.add("dd/MM/yy HH:mm:ss");               //  28/04/16 15:30:45
-
-        dataTypeRegex = new ArrayList<>();
-        dataTypeRegex.add(new Tuple2<>("^[-+]*[0-9]*\\.[0-9]+$", DataTypes.DoubleType));
-        dataTypeRegex.add(new Tuple2<>("^[0-9]*$", DataTypes.IntegerType));
-        dataTypeRegex.add(new Tuple2<>("^(true|false|True|False|TRUE|FALSE|Yes|No|YES|NO|yes|no|Y|N)$", DataTypes.BooleanType));
-
-        meaningTypeRegex = new ArrayList<>();
-        meaningTypeRegex.add(new Tuple2<>("^(([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2})|(([0-9A-Fa-f]{4}\\.){2}[0-9A-Fa-f]{4})$", MeaningType.MAC_ADDRESS));
-        meaningTypeRegex.add(new Tuple2<>("^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$", MeaningType.EMAIL_ADDRESS));
-        meaningTypeRegex.add(new Tuple2<>("^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$", MeaningType.IPv4));
-        meaningTypeRegex.add(new Tuple2<>("^(^(([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){5}::[0-9A-F]{1,4})|((:[0-9A-F]{1,4}){4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){3}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|(:[0-9A-F]{1,4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,5})|(:[0-9A-F]{1,4}){7}))$|^(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,6})$)|^::$)|^((([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){3}::([0-9A-F]{1,4}){1})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){1}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|((:[0-9A-F]{1,4}){0,5})))|([:]{2}[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})):|::)((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})$", MeaningType.IPv6));
-        meaningTypeRegex.add(new Tuple2<>("^(http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$", MeaningType.URL));
+        typeSet = new HashSet<>();
+        typeSet.add(new FieldMeaning(MeaningType.NUMERIC, null, DataTypes.DoubleType, "^[-+]*[0-9]*\\.[0-9]+$"));
+        typeSet.add(new FieldMeaning(MeaningType.NUMERIC, null, DataTypes.IntegerType, "^[0-9]+$"));
+        typeSet.add(new FieldMeaning(MeaningType.BOOLEAN, null, DataTypes.BooleanType, "^(true|false|True|False|TRUE|FALSE|Yes|No|YES|NO|yes|no|Y|N)$"));
+        typeSet.add(new FieldMeaning(MeaningType.TEXT, null, DataTypes.StringType, "^.*$"));
+        typeSet.add(new FieldMeaning(MeaningType.MAC_ADDRESS, null, DataTypes.StringType, "^(([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2})|(([0-9A-Fa-f]{4}\\.){2}[0-9A-Fa-f]{4})$"));
+        typeSet.add(new FieldMeaning(MeaningType.EMAIL_ADDRESS, null, DataTypes.StringType, "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"));
+        typeSet.add(new FieldMeaning(MeaningType.IPv4, null, DataTypes.StringType, "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"));
+        typeSet.add(new FieldMeaning(MeaningType.IPv6, null, DataTypes.StringType, "^(^(([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){5}::[0-9A-F]{1,4})|((:[0-9A-F]{1,4}){4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){3}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|(:[0-9A-F]{1,4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,5})|(:[0-9A-F]{1,4}){7}))$|^(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,6})$)|^::$)|^((([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){3}::([0-9A-F]{1,4}){1})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){1}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|((:[0-9A-F]{1,4}){0,5})))|([:]{2}[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})):|::)((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})$"));
+        typeSet.add(new FieldMeaning(MeaningType.URL, null, DataTypes.StringType, "^(http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$"));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyy.MM.dd G 'at' HH:mm:ss z", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "EEE, MMM d, ''yy", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "h:mm a", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "hh 'o''clock' a, zzzz", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "K:mm a, z", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyyy.MMMMM.dd GGG hh:mm a", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "EEE, d MMM yyyy HH:mm:ss Z", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyMMddHHmmssZ", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyy-MM-dd'T'HH:mm:ss.SSSZ", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyy-MM-dd HH:mm:ss", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "YYYY-'W'ww-u", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "dd/MM/yy HH:mm", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "dd/MM/yy HH:mm:ss", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "dd/MM/yyyy HH:mm:ss", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yy HH:mm", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yy HH:mm:ss", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yyyy HH:mm:ss", DataTypes.StringType, null));
 
     }
 
@@ -58,163 +59,47 @@ public class Recogniser {
      * @param value the String to evaluate
      * @return a list of possible meanings that this String could have. This includes semantic and DataType combinations
      */
-    public static List<FieldMeaning> getPossibleMeanings(String value) {
+    public static Set<FieldMeaning> getPossibleMeanings(String value) {
+        Set<FieldMeaning> types = new HashSet<>();
 
-        List<FieldMeaning> fieldMeanings = new ArrayList<>();
-
-        List<DataType> possibleDataTypes = getPossibleDataTypes(value);
-        List<String> possibleFormats = getPossibleDateFormats(value);
-
-        for (DataType type : possibleDataTypes) {
-
-            for (MeaningType meaningType : getPossibleFieldMeaningTypes(value)) {
-
-                if (possibleFormats != null && possibleFormats.size() > 0) {
-                    for (String format : possibleFormats) {
-                        fieldMeanings.add(new FieldMeaning(meaningType, format, type));
-                    }
-                } else {
-                    fieldMeanings.add(new FieldMeaning(meaningType, null, type));
-                }
-
-            }
-
-            fieldMeanings.add(new FieldMeaning(getDataTypeMeaning(type), null, type));
-
-        }
-
-        return fieldMeanings;
-
-    }
-
-    /**
-     * @param type a Spark DataType for meaning assessment
-     * @return the meaning of the type
-     */
-    public static MeaningType getDataTypeMeaning(DataType type) {
-        if (type.sameType(DataTypes.ShortType) ||
-                type.sameType(DataTypes.LongType) ||
-                type.sameType(DataTypes.FloatType) ||
-                type.sameType(DataTypes.DoubleType) ||
-                type.sameType(DataTypes.IntegerType)) {
-
-            return MeaningType.NUMERIC;
-        }
-
-        if (type.sameType(DataTypes.DateType))
-            return MeaningType.DATE;
-
-        if (type.sameType(DataTypes.BooleanType))
-            return MeaningType.BOOLEAN;
-
-        return MeaningType.TEXT;
-
-    }
-
-    /**
-     *
-     * @param value the String to be evaulated
-     * @return the possible DataTypes that the String could represent
-     */
-    private static List<DataType> getPossibleDataTypes(String value) {
-
-        List<DataType> types = new ArrayList<>();
-
-        for (Tuple2<String, DataType> regex : dataTypeRegex) {
-            if (value.matches(regex._1)) {
-                types.add(regex._2);
+        for (FieldMeaning meaning : typeSet) {
+            String regex = meaning.getMatchingRegex();
+            if (regex == null && meaning.getMeaningType() == MeaningType.DATE) {
+                if (matchesDateFormat(value, meaning.getFormat()))
+                    types.add(meaning);
+            } else if (value.matches(regex)) {
+                types.add(meaning);
             }
         }
-
-        if (!types.contains(DataTypes.StringType))
-            types.add(DataTypes.StringType);
 
         return types;
     }
 
     /**
-     *
-     * @param value the String to be evaulated
-     * @return the possible MeaningTypes that could be represneted by this String
-     */
-    public static List<MeaningType> getPossibleFieldMeaningTypes(String value) {
-
-        List<MeaningType> types = new ArrayList<>();
-
-        for (Tuple2<String, MeaningType> regex : meaningTypeRegex) {
-            if (value.matches(regex._1)) {
-                types.add(regex._2);
-            }
-        }
-
-        if (isDate(value))
-            types.add(MeaningType.DATE);
-
-        if (types.size() == 0)
-            types.add(MeaningType.TEXT);
-
-        return types;
-
-    }
-
-    public static DataType getDataType(String value) {
-
-        DataType type = null;
-
-        for (Tuple2<String, DataType> regex : dataTypeRegex) {
-            if (value.matches(regex._1)) {
-                type = regex._2;
-            }
-        }
-
-        if (type == null) {
-            type = DataTypes.StringType;
-        }
-        return type;
-
-    }
-
-    /**
-     *
      * @param value the String to be evaulated
      * @return list of possible date formats that could be used to decode this date or null if not a date.
      */
-    public static List<String> getPossibleDateFormats(String value) {
+    public static boolean matchesDateFormat(String value, String format) {
 
         LocalDate date = null;
 
-        List<String> possibleDateTimeFormats = new ArrayList<>();
-
-        for (String dateTimeFormatter : Recogniser.possibleDateTimeFormats) {
-            boolean isParseable = true;
-            try {
-                date = LocalDate.parse(value, DateTimeFormatter.ofPattern(dateTimeFormatter));
-            } catch (DateTimeParseException exc) {
-                isParseable = false;
-            }
-            if (isParseable)
-                possibleDateTimeFormats.add(dateTimeFormatter);
-
+        boolean isParseable = true;
+        try {
+            date = LocalDate.parse(value, DateTimeFormatter.ofPattern(format));
+        } catch (DateTimeParseException exc) {
+            isParseable = false;
         }
-
-        return possibleDateTimeFormats;
-    }
-
-    public static boolean isDate(String value) {
-        return getPossibleDateFormats(value).size() > 0;
+        return isParseable;
     }
 
     /**
-     *
      * @param possibleMeanings list of meanings that are currently possible for this value
-     * @param value the String to be evaulated
+     * @param value            the String to be evaulated
      * @return an updated list of meanings (a subset of possibleMeanings) that also match value
      */
     public static List<FieldMeaning> getPossibleFieldMeaningTypes(List<FieldMeaning> possibleMeanings, String value) {
 
         List<FieldMeaning> refinedMeanings = new ArrayList<>();
-
-
         for (FieldMeaning possibleMeaning : getPossibleMeanings(value)) {
             if (possibleMeanings == null || possibleMeanings.contains(possibleMeaning)) {
                 refinedMeanings.add(possibleMeaning);

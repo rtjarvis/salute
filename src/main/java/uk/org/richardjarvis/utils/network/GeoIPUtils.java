@@ -34,7 +34,7 @@ public class GeoIPUtils {
     private static final String CITY_LOCATIONS_FILE = "/GeoLite2-City-Locations-en.csv";
     private static final int NUM_GEO_PARTITIONS = 100;
     private static final String GEO_DATA_PARQUET_INDX_FILE = "/GeoLite2_index";
-    private static final String GEO_DATA_PARQUET_FILE_FORMAT = "json";
+    private static final String GEO_DATA_PARQUET_FILE_FORMAT = "parquet";
     private static URL geoCitiesURL;
     private static List<SubnetRange> partitionIndex;
     private static List<Integer> usefulFieldIndicies = new ArrayList<>();
