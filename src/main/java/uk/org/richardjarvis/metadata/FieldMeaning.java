@@ -13,15 +13,23 @@ import java.time.format.DateTimeFormatter;
  */
 public class FieldMeaning {
 
+    private String matchingRegex;
+    private MeaningType meaningType;
+    private String format;
+    private DataType type;
+
     public FieldMeaning(MeaningType meaningType, String format, DataType type) {
         this.meaningType=meaningType;
         this.format=format;
         this.type=type;
     }
 
-    public enum MeaningType {PHONE_NUMBER, MAC_ADDRESS, IPv4, IPv6, EMAIL_ADDRESS, URL, UNKNOWN, GEOHASH, AUDIO_WAVEFORM, NUMERIC, TEXT, DATE, DATE_PART, ORGANISATION, LOCATION, MONEY, NAME, BOOLEAN, IPv4_SUBNET, POSTAL_CODE, LATITUDE, LONGITUDE, LOCALE, CONTINENT_CODE, CONTINENT, COUNTRY_NAME, COUNTRY, ONE_HOT}
-
-    private String matchingRegex;
+    public FieldMeaning(MeaningType meaningType, String format, DataType type, String matchingRegex) {
+        this.meaningType = meaningType;
+        this.format = format;
+        this.type = type;
+        this.matchingRegex=matchingRegex;
+    }
 
     public String getMatchingRegex() {
         return matchingRegex;
@@ -29,17 +37,6 @@ public class FieldMeaning {
 
     public void setMatchingRegex(String matchingRegex) {
         this.matchingRegex = matchingRegex;
-    }
-
-    private MeaningType meaningType;
-    private String format;
-    private DataType type;
-
-    public FieldMeaning(MeaningType meaningType, String format, DataType type, String matchingRegex) {
-        this.meaningType = meaningType;
-        this.format = format;
-        this.type = type;
-        this.matchingRegex=matchingRegex;
     }
 
     @Override
@@ -110,5 +107,7 @@ public class FieldMeaning {
         result = 31 * result + (getType() != null ? getType().hashCode() : 0);
         return result;
     }
+
+    public enum MeaningType {PHONE_NUMBER, MAC_ADDRESS, IPv4, IPv6, EMAIL_ADDRESS, URL, UNKNOWN, GEOHASH, AUDIO_WAVEFORM, NUMERIC, TEXT, DATE, DATE_PART, ORGANISATION, LOCATION, MONEY, NAME, BOOLEAN, IPv4_SUBNET, POSTAL_CODE, LATITUDE, LONGITUDE, LOCALE, CONTINENT_CODE, CONTINENT, COUNTRY_NAME, COUNTRY, ONE_HOT}
 
 }

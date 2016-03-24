@@ -1,5 +1,9 @@
 package uk.org.richardjarvis.utils.field;
 
+import com.google.i18n.phonenumbers.CountryCodeToRegionCodeMap;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import scala.Tuple2;
@@ -20,6 +24,7 @@ import static uk.org.richardjarvis.metadata.FieldMeaning.MeaningType;
  */
 public class Recogniser {
 
+    private static final java.lang.String COUNTRY_CODE_SEPARATOR = "|";
     private static Set<FieldMeaning> typeSet;
 
     static {
@@ -33,6 +38,7 @@ public class Recogniser {
         typeSet.add(new FieldMeaning(MeaningType.EMAIL_ADDRESS, null, DataTypes.StringType, "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"));
         typeSet.add(new FieldMeaning(MeaningType.IPv4, null, DataTypes.StringType, "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"));
         typeSet.add(new FieldMeaning(MeaningType.IPv6, null, DataTypes.StringType, "^(^(([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){5}::[0-9A-F]{1,4})|((:[0-9A-F]{1,4}){4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){3}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|(:[0-9A-F]{1,4}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,5})|(:[0-9A-F]{1,4}){7}))$|^(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,6})$)|^::$)|^((([0-9A-F]{1,4}(((:[0-9A-F]{1,4}){3}::([0-9A-F]{1,4}){1})|((:[0-9A-F]{1,4}){2}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,1})|((:[0-9A-F]{1,4}){1}::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,2})|(::[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,3})|((:[0-9A-F]{1,4}){0,5})))|([:]{2}[0-9A-F]{1,4}(:[0-9A-F]{1,4}){0,4})):|::)((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{0,2})$"));
+        typeSet.add(new FieldMeaning(MeaningType.URL, null, DataTypes.StringType, "^(http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$"));
         typeSet.add(new FieldMeaning(MeaningType.URL, null, DataTypes.StringType, "^(http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$"));
         typeSet.add(new FieldMeaning(MeaningType.DATE, "yyyy.MM.dd G 'at' HH:mm:ss z", DataTypes.StringType, null));
         typeSet.add(new FieldMeaning(MeaningType.DATE, "EEE, MMM d, ''yy", DataTypes.StringType, null));
@@ -52,6 +58,7 @@ public class Recogniser {
         typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yy HH:mm", DataTypes.StringType, null));
         typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yy HH:mm:ss", DataTypes.StringType, null));
         typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yyyy HH:mm:ss", DataTypes.StringType, null));
+        typeSet.add(new FieldMeaning(MeaningType.PHONE_NUMBER, null, DataTypes.StringType, null));
 
     }
 
@@ -64,15 +71,58 @@ public class Recogniser {
 
         for (FieldMeaning meaning : typeSet) {
             String regex = meaning.getMatchingRegex();
-            if (regex == null && meaning.getMeaningType() == MeaningType.DATE) {
-                if (matchesDateFormat(value, meaning.getFormat()))
-                    types.add(meaning);
+            if (regex == null) {
+                switch (meaning.getMeaningType()) {
+                    case DATE:
+                        if (matchesDateFormat(value, meaning.getFormat()))
+                            types.add(meaning);
+                        break;
+                    case PHONE_NUMBER:
+                        String format = countriesForPhoneNumber(value, meaning.getFormat());
+                        if (format.length() > 0) {
+                            meaning.setFormat(format);
+                            types.add(meaning);
+                        }
+                        break;
+                }
             } else if (value.matches(regex)) {
                 types.add(meaning);
             }
         }
 
         return types;
+    }
+
+    public static String countriesForPhoneNumber(String value, String format) {
+
+        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+
+        String[] possibleCountryCodes;
+        if (format != null) {
+            possibleCountryCodes = format.split(COUNTRY_CODE_SEPARATOR);
+        } else {
+            possibleCountryCodes = phoneUtil.getSupportedRegions().toArray(new String[0]);
+        }
+
+        StringBuilder matchingCountries = new StringBuilder();
+        boolean first = true;
+        for (String countryCode : possibleCountryCodes) {
+
+            try {
+                Phonenumber.PhoneNumber test = phoneUtil.parse(value, countryCode);
+                if (phoneUtil.isValidNumberForRegion(test, countryCode)) {
+                    if (!first) {
+                        matchingCountries.append("|");
+                    }
+                    matchingCountries.append(countryCode);
+                    first = false;
+                }
+            } catch (NumberParseException e) {
+            }
+
+        }
+
+        return matchingCountries.toString();
     }
 
     /**
