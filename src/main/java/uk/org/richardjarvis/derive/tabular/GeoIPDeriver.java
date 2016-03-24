@@ -22,8 +22,7 @@ import java.util.stream.IntStream;
 public class GeoIPDeriver implements TabularDeriveInterface {
 
     /**
-     *
-     * @param input the input dataframe
+     * @param input    the input dataframe
      * @param metaData the metadata that describes the input dataframe
      * @return an enriched DataFrame containing Geo information for IP addresses
      */
@@ -80,11 +79,9 @@ public class GeoIPDeriver implements TabularDeriveInterface {
                     }
 
                     if (match != null) {
-                        for (Integer i  : GeoIPUtils.getUsefulFieldIndicies()) {
+                        for (int i = 0; i < match.size(); i++) {
                             outputRow[fieldIndex++] = match.get(i);
                         }
-                    } else {
-                        System.out.println(lookupPartion + " does not contain " + value);
                     }
                 }
             }

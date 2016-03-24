@@ -99,11 +99,8 @@ public class DateFormatDeriver implements TabularDeriveInterface {
         StructType structType = input.schema();
         for (FieldProperties fieldProperties : columns) {
             for (String timePeriod : timePeriods.keySet()) {
-
-                MetadataBuilder metadataBuilder = new MetadataBuilder();
-                metadataBuilder.putString(DataFrameUtils.MEANING_METADATA, FieldMeaning.MeaningType.DATE_PART.name());
-                StructField field= new StructField(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod), false, metadataBuilder.build());
-
+                Metadata metadata = DataFrameUtils.getMetadata(FieldMeaning.MeaningType.DATE_PART, null);
+                StructField field= new StructField(getName(fieldProperties, timePeriod), timePeriods.get(timePeriod), false, metadata);
                 structType = structType.add(field);
             }
         }

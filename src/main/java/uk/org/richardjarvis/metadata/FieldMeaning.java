@@ -1,6 +1,9 @@
 package uk.org.richardjarvis.metadata;
 
 import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.MetadataBuilder;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -50,7 +53,6 @@ public class FieldMeaning {
     }
 
     public DataType getType() {
-
         return type;
     }
 
@@ -75,7 +77,6 @@ public class FieldMeaning {
     }
 
     public DateTimeFormatter getDateFormattter() {
-
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(getFormat()).withZone(getZone());
         return dateTimeFormatter;
     }

@@ -5,6 +5,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldStatistics;
@@ -12,6 +13,8 @@ import uk.org.richardjarvis.metadata.Statistics;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,8 +22,7 @@ import java.util.List;
  */
 public class CategoryPopularityDeriver implements TabularDeriveInterface {
     /**
-     *
-     * @param input the input dataframe
+     * @param input    the input dataframe
      * @param metaData the metadata that describes the input dataframe
      * @return an enriched dataframe with an additional column per categorical variable containing the fraction of all distinct values that match this categorical variable
      */
@@ -53,13 +55,22 @@ public class CategoryPopularityDeriver implements TabularDeriveInterface {
             return RowFactory.create(outputRow);
         });
 
+        return input.sqlContext().createDataFrame(output, getUpdatedSchema(input, metaData));
+    }
 
-        StructType structType = input.schema();
+    private StructType getUpdatedSchema(DataFrame input, TabularMetaData metaData) {
+
+        List<StructField> newColumns = new ArrayList<>();
+        newColumns.addAll(Arrays.asList(input.schema().fields()));
+
+        List<String> stringColumns = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.TEXT));
+
         for (String name : stringColumns) {
-            structType = structType.add(name + "_ratio", DataTypes.DoubleType);
+            StructField field = new StructField(name + "_ratio", DataTypes.DoubleType, false, DataFrameUtils.getMetadata(FieldMeaning.MeaningType.NUMERIC, null));
+            newColumns.add(field);
         }
 
-        return input.sqlContext().createDataFrame(output, structType);
+        return new StructType(newColumns.toArray(new StructField[0]));
     }
 
 

@@ -2,6 +2,9 @@ package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.MetadataBuilder;
+import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.FieldProperties;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.TabularMetaData;
@@ -15,8 +18,7 @@ import java.util.List;
 public class RatioDeriver implements TabularDeriveInterface {
 
     /**
-     *
-     * @param input the input dataframe
+     * @param input    the input dataframe
      * @param metaData the metadata that describes the input dataframe
      * @return an enriched DataFrame with addtional fields that are the ratio between pairs of the original numerical columns
      */
@@ -36,7 +38,8 @@ public class RatioDeriver implements TabularDeriveInterface {
                 String denominatorColumnName = numericColumns.get(denominator).getName();
                 Column numeratorColumn = input.col(numeratorColumnName);
                 Column denominatorColumn = input.col(denominatorColumnName);
-                input = input.withColumn(numeratorColumnName + "_over_" + denominatorColumnName, numeratorColumn.divide(denominatorColumn));
+                Metadata metadata = DataFrameUtils.getMetadata(FieldMeaning.MeaningType.NUMERIC, null);
+                input = input.withColumn(numeratorColumnName + "_over_" + denominatorColumnName, numeratorColumn.divide(denominatorColumn),metadata);
             }
         }
 

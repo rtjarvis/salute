@@ -38,7 +38,6 @@ public class GeoIPUtils {
     private static URL geoCitiesURL;
     private static List<SubnetRange> partitionIndex;
     private static List<Integer> usefulFieldIndicies = new ArrayList<>();
-    private static List<String> usefulFields = Arrays.asList("locale_code", "continent_code", "continent_name", "country_iso_code", "country_name", "subdivision_1_iso_code", "subdivision_1_name", "subdivision_2_iso_code", "subdivision_2_name", "city_name", "metro_code", "time_zone", "is_anonymous_proxy", "is_satellite_provider", "postal_code", "latitude", "longitude");
     private static DataFrame geoIPDataFrame;
 
     static {
@@ -54,7 +53,6 @@ public class GeoIPUtils {
     }
 
     /**
-     *
      * @param sqlContext the SQLContext used to load the GeoIP lookup file
      * @return the DataFrame representing the GeoIP lookup file
      */
@@ -65,7 +63,11 @@ public class GeoIPUtils {
         if (inputFile != null) {
             try {
                 loadGeoFileIndex();
-                return sqlContext.read().format(GEO_DATA_PARQUET_FILE_FORMAT).load(inputFile.getPath());
+                return sqlContext
+                        .read()
+                        .format(GEO_DATA_PARQUET_FILE_FORMAT)
+                        .load(inputFile.getPath())
+                        .select(NETWORK_COLUMN + NetworkUtils.SUBNET_LOWER_RANGE_NAME, NETWORK_COLUMN + NetworkUtils.SUBNET_UPPER_RANGE_NAME, "country_name", "city_name", "is_anonymous_proxy", "is_satellite_provider", "postal_code", "latitude", "longitude");
             } catch (Exception esc) {
                 return createGeoCitiesDataFrame(sqlContext);
             }
@@ -213,19 +215,6 @@ public class GeoIPUtils {
         return new StructType(fields);
     }
 
-    public static List<Integer> getUsefulFieldIndicies() {
-
-        if (usefulFieldIndicies != null)
-            return usefulFieldIndicies;
-
-        if (geoIPDataFrame != null) {
-            for (String field : usefulFields) {
-                usefulFieldIndicies.add(geoIPDataFrame.schema().fieldIndex(field));
-            }
-        }
-        return usefulFieldIndicies;
-    }
-
     /**
      * Holds information on a Subnet (min and max address and contained partition in lookup DataFrame)
      */
@@ -274,8 +263,6 @@ public class GeoIPUtils {
         }
 
     }
-
-
 
 
 }

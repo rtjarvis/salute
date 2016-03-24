@@ -91,7 +91,7 @@ public class EntityDeriver implements TabularDeriveInterface {
 
         for (String modelName : OpenNLPEntityExtractor.MODELS.keySet()) {
             for (int i = 0; i < NUMBER_OF_ENTITY_CATEGORIES; i++) {
-                Metadata metadata = new MetadataBuilder().putString(DataFrameUtils.MEANING_METADATA, OpenNLPEntityExtractor.MODELS.get(modelName).name()).build();
+                Metadata metadata = DataFrameUtils.getMetadata(OpenNLPEntityExtractor.MODELS.get(modelName),null);
                 fields.add(new StructField(fieldName + "_entity_" + modelName + "_" + i, DataTypes.StringType, false, metadata));
             }
         }

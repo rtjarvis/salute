@@ -1,10 +1,8 @@
 package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.*;
-import uk.org.richardjarvis.metadata.FieldProperties;
-import uk.org.richardjarvis.metadata.FieldStatistics;
-import uk.org.richardjarvis.metadata.MetaData;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import org.apache.spark.sql.types.Metadata;
+import uk.org.richardjarvis.metadata.*;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 
@@ -16,17 +14,16 @@ import java.util.*;
 public class ZIndexDeriver implements TabularDeriveInterface {
 
     /**
-     *
-      * @param input the input DataFrame
+     * @param input    the input DataFrame
      * @param metaData the metadata that describes the input dataframe
      * @return an enriched DataFrame with additional numeric columns that contain the z-score for the original numeric
      */
     @Override
-    public DataFrame derive(DataFrame input,  TabularMetaData metaData) {
+    public DataFrame derive(DataFrame input, TabularMetaData metaData) {
 
         List<FieldProperties> numericColumns = metaData.getNumericFields();
 
-        if (numericColumns.size()==0)
+        if (numericColumns.size() == 0)
             return input;
 
         int numericColumnCount = numericColumns.size();
@@ -36,12 +33,12 @@ public class ZIndexDeriver implements TabularDeriveInterface {
         for (int fieldIndex = 0; fieldIndex < numericColumnCount; fieldIndex++) {
             Column valueColumn = input.col(numericColumns.get(fieldIndex).getName());
             FieldStatistics stats = metaData.getStatistics().get(valueColumn);
-            output = output.withColumn(valueColumn.expr().prettyString() + "_zindex", valueColumn.minus(stats.getMean()).divide(stats.getStandardDeviation()));
+            Metadata metadata = DataFrameUtils.getMetadata(FieldMeaning.MeaningType.NUMERIC, null);
+            output = output.withColumn(valueColumn.expr().prettyString() + "_zindex", valueColumn.minus(stats.getMean()).divide(stats.getStandardDeviation()), metadata);
         }
 
         return output;
     }
-
 
 
 }
