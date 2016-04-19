@@ -76,4 +76,35 @@ public class TabularFullIT {
         fl.process(testFile.getPath(), outputDir);
 
     }
+
+    @Test
+    public void testProcess5() throws Exception {
+
+        String outputDir = "/tmp/test4.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
+
+        URL testFile = getClass().getResource("/csvs.tar");
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(testFile.getPath(), outputDir);
+
+    }
+
+    @Test
+    public void testProcess6() throws Exception {
+
+        String outputDir = "/tmp/test5.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
+
+        URL testFile = getClass().getResource("/csv_dirs.tar");
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(testFile.getPath(), outputDir);
+
+    }
+
 }

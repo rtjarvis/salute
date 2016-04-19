@@ -1,9 +1,12 @@
 package uk.org.richardjarvis.loader;
 
+import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.spark.sql.DataFrame;
@@ -52,8 +55,7 @@ public class FileLoader {
     }
 
     /**
-     *
-     * @param inputPath the path of the input file that is to be processed
+     * @param inputPath  the path of the input file that is to be processed
      * @param outputPath the path of the output file that will be saved
      * @return success of processing
      * @throws IOException
@@ -71,7 +73,7 @@ public class FileLoader {
 
         if (FileAssessor.isArchive(streamType)) {
             LOGGER.info("Stream is archive. Processing archive");
-            List<ArchiveEntry> unpackedEntries = unpack(inputPath);
+            List<String> unpackedEntries = uncompressTar(inputPath);
             LOGGER.info("Packed File contained " + unpackedEntries.size() + " child streams.");
             return process(unpackedEntries, outputPath);
 
@@ -133,7 +135,7 @@ public class FileLoader {
 
                 WriterInterface writer = new CSVWriter();
 
-                writer.write(derivedData,metaData,outputPath);
+                writer.write(derivedData, metaData, outputPath);
 
                 return true;
             }
@@ -145,15 +147,13 @@ public class FileLoader {
     }
 
 
-    public boolean process(List<ArchiveEntry> entries, String outputPath) throws IOException, CompressorException, ArchiveException {
+    public boolean process(List<String> inputPaths, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
 
-        for (ArchiveEntry archiveEntry : entries) {
-            ZipArchiveEntry zar = (ZipArchiveEntry) archiveEntry;
-
-            //archiveEntry.get
-            //extractMetaData(archiveEntry.)
+        boolean success = true;
+        for (String inputPath : inputPaths) {
+            success &= process(inputPath, outputPath + "_" + inputPath);
         }
-        return true;
+        return success;
     }
 
 
@@ -189,6 +189,50 @@ public class FileLoader {
 
     }
 
+    public static List<String> uncompressTar(String tarFilePath) throws IOException {
+
+        File tempDir = Files.createTempDir();
+
+        LOGGER.info("Extracting taar file contents from " + tarFilePath);
+
+        List<String> contents = new ArrayList<>();
+
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream(tarFilePath)));
+
+        TarArchiveEntry tarEntry = tarIn.getNextTarEntry();
+
+        while (tarEntry != null) {
+
+            File dest = new File(tempDir, tarEntry.getName());
+            LOGGER.info("Creating " + dest.getPath() + " from entry " + tarEntry.getName());
+
+            if (tarEntry.isDirectory()) {
+                dest.mkdirs();
+            } else {
+                dest.createNewFile();
+                //byte [] btoRead = new byte[(int)tarEntry.getSize()];
+                byte[] btoRead = new byte[1024];
+                //FileInputStream fin
+                //  = new FileInputStream(destPath.getCanonicalPath());
+                BufferedOutputStream bout =
+                        new BufferedOutputStream(new FileOutputStream(dest));
+                int len = 0;
+
+                while ((len = tarIn.read(btoRead)) != -1) {
+                    bout.write(btoRead, 0, len);
+                }
+
+                bout.close();
+                btoRead = null;
+
+            }
+            contents.add(dest.getPath());
+            tarEntry = tarIn.getNextTarEntry();
+        }
+        tarIn.close();
+
+        return contents;
+    }
 
     public SQLContext getSqlContext() {
         if (this.sqlContext == null)
