@@ -5,12 +5,7 @@ import org.junit.Test;
 import uk.org.richardjarvis.loader.FileLoader;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by rjarvis on 22/02/16.
@@ -20,11 +15,11 @@ public class TabularFullIT {
     @Test
     public void testProcess() throws Exception {
 
-        String outputDir = "/tmp/test.json";
+        String outputDir = "/tmp/TestPoJo.json";
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/uk-500.csv");
+        URL testFile = getClass().getResource("/text/uk-500.csv");
 
         FileLoader fl = new FileLoader();
 
@@ -35,11 +30,11 @@ public class TabularFullIT {
     @Test
     public void testProcess2() throws Exception {
 
-        String outputDir = "/tmp/test.json";
+        String outputDir = "/tmp/TestPoJo.json";
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/csv_no_string_escape.csv");
+        URL testFile = getClass().getResource("/text/csv_no_string_escape.csv");
 
         FileLoader fl = new FileLoader();
 
@@ -54,7 +49,7 @@ public class TabularFullIT {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/csv_with_date_and_header.csv");
+        URL testFile = getClass().getResource("/text/csv_with_date_and_header.csv");
 
         FileLoader fl = new FileLoader();
 
@@ -69,7 +64,7 @@ public class TabularFullIT {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/csv_with_ip.csv");
+        URL testFile = getClass().getResource("/text/csv_with_ip.csv");
 
         FileLoader fl = new FileLoader();
 
@@ -84,7 +79,7 @@ public class TabularFullIT {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/csvs.tar");
+        URL testFile = getClass().getResource("/text/csvs.tar");
 
         FileLoader fl = new FileLoader();
 
@@ -99,7 +94,7 @@ public class TabularFullIT {
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
-        URL testFile = getClass().getResource("/csv_dirs.tar");
+        URL testFile = getClass().getResource("/text/csv_dirs.tar");
 
         FileLoader fl = new FileLoader();
 

@@ -31,6 +31,9 @@ public class FileAssessor {
         if ("audio/mpeg,audio/x-wav".contains(streamType))
             return FileType.AUDIO;
 
+        if ("image/png".contains(streamType))
+            return FileType.IMAGE;
+
         return FileType.UNKNOWN;
     }
 

@@ -16,8 +16,10 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.richardjarvis.derive.audio.AudioMasterDeriver;
+import uk.org.richardjarvis.derive.image.ImageMasterDeriver;
 import uk.org.richardjarvis.derive.tabular.TabularMasterDeriver;
 import uk.org.richardjarvis.metadata.AudioMetaData;
+import uk.org.richardjarvis.metadata.ImageMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
@@ -131,8 +133,12 @@ public class FileLoader {
                     AudioMasterDeriver masterDeriver = new AudioMasterDeriver();
                     derivedData = masterDeriver.derive(data, (AudioMetaData) metaData);
 
-                }
+                } else if (metaData instanceof ImageMetaData) {
 
+                    ImageMasterDeriver masterDeriver = new ImageMasterDeriver();
+                    derivedData = masterDeriver.derive(data, (ImageMetaData) metaData);
+
+                }
                 WriterInterface writer = new CSVWriter();
 
                 writer.write(derivedData, metaData, outputPath);
