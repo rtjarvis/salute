@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Created by rjarvis on 20/04/16.
  */
-public class HueDistributionDeriver implements ImageDeriveInterface {
+public class HueSaturationLuminanceDeriver implements ImageDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, ImageMetaData metaData) {
 
