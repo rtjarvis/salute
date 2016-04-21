@@ -69,6 +69,7 @@ public class HueSaturationLuminanceDeriver implements ImageDeriveInterface {
                     Iterator<WrappedArray<Double>> rowItr = itr.next().iterator();
                     int x = 0;
                     while (rowItr.hasNext()) {
+
                         WrappedArray<Double> pixel = rowItr.next();
                         Double red = pixel.apply(0);
                         Double green = pixel.apply(1);
@@ -81,13 +82,13 @@ public class HueSaturationLuminanceDeriver implements ImageDeriveInterface {
                         Double saturation = 0.0;
                         Double luminance = (max + min) / 2;
 
-                        if (max != min) {
+                        if (!max.equals(min)) {
                             saturation = (luminance < 0.5) ? (max - min) / (max + min) : (max - min) / (2.0 - max - min);
-                            if (red == max) {
+                            if (red.equals(max)) {
                                 hue = (green - blue) / (max - min);
-                            } else if (green == max) {
+                            } else if (green.equals(max)) {
                                 hue = 2.0 + (blue - red) / (max - min);
-                            } else if (blue == max) {
+                            } else if (blue.equals(max)) {
                                 hue = 4.0 + (red - green) / (max - min);
                             }
                         }
@@ -101,7 +102,7 @@ public class HueSaturationLuminanceDeriver implements ImageDeriveInterface {
                 }
 
 
-                outputRow[fieldIndex++] = data;
+                outputRow[fieldIndex++] = imageDataArray;
             }
             return RowFactory.create(outputRow);
 
