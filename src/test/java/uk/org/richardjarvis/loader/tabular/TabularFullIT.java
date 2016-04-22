@@ -15,7 +15,7 @@ public class TabularFullIT {
     @Test
     public void testProcess() throws Exception {
 
-        String outputDir = "/tmp/TestPoJo.json";
+        String outputDir = "/tmp/test.json";
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 
@@ -30,7 +30,7 @@ public class TabularFullIT {
     @Test
     public void testProcess2() throws Exception {
 
-        String outputDir = "/tmp/TestPoJo.json";
+        String outputDir = "/tmp/test.json";
         File output = new File(outputDir);
         FileUtils.deleteDirectory(output);
 

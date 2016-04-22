@@ -9,10 +9,16 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.*;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.*;
+import org.xml.sax.SAXException;
 import uk.org.richardjarvis.metadata.AudioMetaData;
+import uk.org.richardjarvis.metadata.ImageMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.utils.DataFrameUtils;
+import uk.org.richardjarvis.utils.file.FileUtils;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -29,17 +35,23 @@ public class AudioProcessor implements ProcessorInterface {
     @Override
     public MetaData extractMetaData(String path) throws IOException {
 
-        AudioMetaData metaData = new AudioMetaData();
+        AudioMetaData audioMetaData = new AudioMetaData();
+
         try {
             AudioFileFormat audioFileFormat = AudioSystem.getAudioFileFormat(new File(path));
-
-            metaData.setAudioFileFormat(audioFileFormat);
-            metaData.setTimeWindowLength(TIME_WINDOW_LENGTH_SECONDS);
+            org.apache.tika.metadata.Metadata metadata = FileUtils.getMetadata(path);
+            audioMetaData.setMetadata(metadata);
+            audioMetaData.setAudioFileFormat(audioFileFormat);
+            audioMetaData.setTimeWindowLength(TIME_WINDOW_LENGTH_SECONDS);
 
         } catch (UnsupportedAudioFileException e) {
             throw new IOException("Cannot read that type of Audio File");
+        } catch (SAXException e) {
+            throw new IOException("Cannot get file properties");
+        } catch (TikaException e) {
+            throw new IOException("Cannot get file properties");
         }
-        return metaData;
+        return audioMetaData;
     }
 
     @Override

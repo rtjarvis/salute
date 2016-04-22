@@ -1,9 +1,15 @@
 package uk.org.richardjarvis.utils.file;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.SAXException;
+import uk.org.richardjarvis.metadata.ImageMetaData;
+
+import java.io.*;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -57,4 +63,27 @@ public class FileUtils {
     public static String getRootDataPath() {
         return FileUtils.class.getResource("/").getPath();
     }
+
+    public static void writeBufferToFile(StringBuilder sb, String path) throws IOException {
+
+        FileWriter fw = new FileWriter(path);
+        fw.write(sb.toString());
+        fw.close();
+
+    }
+
+    public static Metadata getMetadata(String path) throws IOException, TikaException, SAXException {
+
+        Parser parser = new AutoDetectParser();
+        BodyContentHandler handler = new BodyContentHandler();
+        Metadata metadata = new Metadata();
+        FileInputStream inputstream = new FileInputStream(path);
+        ParseContext context = new ParseContext();
+
+        parser.parse(inputstream, handler, metadata, context);
+
+        return metadata;
+
+    }
+
 }

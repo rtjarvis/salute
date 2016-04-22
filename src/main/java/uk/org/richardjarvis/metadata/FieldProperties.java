@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * The properties for a field including its meaning and name
  */
-public class FieldProperties implements MetaData, Serializable {
+public class FieldProperties implements Serializable {
 
     private String name;
     private List<FieldMeaning> possibleMeanings = null;

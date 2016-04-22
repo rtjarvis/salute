@@ -1,13 +1,20 @@
 package uk.org.richardjarvis.metadata;
 
+import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import uk.org.richardjarvis.utils.DataFrameUtils;
+import uk.org.richardjarvis.utils.file.FileUtils;
+import uk.org.richardjarvis.utils.report.ReportUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by rjarvis on 26/02/16.
@@ -123,7 +130,6 @@ public class TabularMetaData implements MetaData {
 
     }
 
-
     public String getPrimaryTimeStampFieldName() {
         return primaryTimeStampFieldName;
     }
@@ -131,4 +137,30 @@ public class TabularMetaData implements MetaData {
     public void setPrimaryTimeStampFieldName(String primaryTimeStampFieldName) {
         this.primaryTimeStampFieldName = primaryTimeStampFieldName;
     }
+
+    @Override
+    public void generateReport(String inputPath, DataFrame dataFrame, String outputPath) {
+
+        Map<String, FieldMeaning> fieldProperties = new HashMap<>();
+
+        this.fieldPropertiesList.stream().forEach(fp -> fieldProperties.put(fp.getName(), fp.getMeaning()));
+
+        StringBuilder sb = new StringBuilder();
+
+        ReportUtil.addHTMLHeader(sb, "Text File Report");
+        ReportUtil.addBodyStart(sb);
+        ReportUtil.addLinkToFile(sb, inputPath);
+        ReportUtil.addHTMLTable(sb, "Field Properties", fieldProperties);
+        ReportUtil.addHTMLTable(sb, "Sample Data", dataFrame, 10);
+        ReportUtil.addBodyEnd(sb);
+        ReportUtil.addHTMLFooter(sb);
+
+        try {
+            FileUtils.writeBufferToFile(sb, outputPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

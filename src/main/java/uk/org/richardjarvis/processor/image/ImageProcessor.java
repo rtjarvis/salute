@@ -21,6 +21,7 @@ import uk.org.richardjarvis.metadata.ImageMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.utils.DataFrameUtils;
+import uk.org.richardjarvis.utils.file.FileUtils;
 import uk.org.richardjarvis.utils.image.ImageRowData;
 
 import javax.imageio.ImageIO;
@@ -41,22 +42,17 @@ public class ImageProcessor implements ProcessorInterface {
     @Override
     public MetaData extractMetaData(String path) throws IOException {
 
-        Parser parser = new AutoDetectParser();
-        BodyContentHandler handler = new BodyContentHandler();
-        Metadata metadata = new Metadata();
-        FileInputStream inputstream = new FileInputStream(path);
-        ParseContext context = new ParseContext();
         ImageMetaData imageMetaData = new ImageMetaData();
 
-
         try {
-            parser.parse(inputstream, handler, metadata, context);
+            Metadata metadata = FileUtils.getMetadata(path);
             imageMetaData.setMetadata(metadata);
         } catch (SAXException e) {
             throw new IOException(e);
         } catch (TikaException e) {
             throw new IOException(e);
         }
+
         return imageMetaData;
     }
 
