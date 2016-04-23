@@ -1,5 +1,7 @@
 package uk.org.richardjarvis.utils.image;
 
+import org.apache.commons.collections.list.TreeList;
+
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -1580,12 +1582,13 @@ public class ColourNamer {
         colours.add(new Colour("White", 0, 0, 1));
     }
 
-    public static String[] getNames() {
-        String[] colourNames = new String[colours.size()];
+    public static List<String> getNames() {
+        List<String> colourNames = new ArrayList<>();
         int i = 0;
         for (Colour colour : colours) {
-            colourNames[i++] = colour.getName();
+            colourNames.add(colour.getName());
         }
+        Collections.sort(colourNames);
         return colourNames;
     }
 

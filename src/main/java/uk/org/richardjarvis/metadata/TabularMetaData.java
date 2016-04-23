@@ -139,7 +139,7 @@ public class TabularMetaData implements MetaData {
     }
 
     @Override
-    public void generateReport(String inputPath, DataFrame dataFrame, String outputPath) {
+    public void generateReport(String inputPath, DataFrame inputData, DataFrame derivedData, String outputPath) {
 
         Map<String, FieldMeaning> fieldProperties = new HashMap<>();
 
@@ -151,7 +151,8 @@ public class TabularMetaData implements MetaData {
         ReportUtil.addBodyStart(sb);
         ReportUtil.addLinkToFile(sb, inputPath);
         ReportUtil.addHTMLTable(sb, "Field Properties", fieldProperties);
-        ReportUtil.addHTMLTable(sb, "Sample Data", dataFrame, 10);
+        ReportUtil.addHTMLTable(sb, "Sample Input Data", inputData, 10);
+        ReportUtil.addHTMLTable(sb, "Sample Output Data", derivedData, 10);
         ReportUtil.addBodyEnd(sb);
         ReportUtil.addHTMLFooter(sb);
 

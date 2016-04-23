@@ -79,7 +79,7 @@ public class ImageMetaData implements MetaData, Serializable {
     }
 
     @Override
-    public void generateReport(String inputPath, DataFrame dataFrame, String outputPath) {
+    public void generateReport(String inputPath, DataFrame inputData, DataFrame derivedData, String outputPath) {
         StringBuilder sb = new StringBuilder();
 
         ReportUtil.addHTMLHeader(sb, "Image File Report");
@@ -87,6 +87,7 @@ public class ImageMetaData implements MetaData, Serializable {
         ReportUtil.addLinkToFile(sb, inputPath);
         ReportUtil.addImage(sb, inputPath);
         ReportUtil.addHTMLTable(sb, "Image MetaData Properties", metadata);
+        ReportUtil.addHTMLTable(sb, "Sample Output Data", derivedData, 10);
         ReportUtil.addBodyEnd(sb);
         ReportUtil.addHTMLFooter(sb);
 

@@ -143,7 +143,7 @@ public class FileLoader {
 
                 writer.write(derivedData, metaData, outputPath);
 
-                metaData.generateReport(inputPath, derivedData, outputPath +"metadataReport.html");
+                metaData.generateReport(inputPath, data, derivedData, outputPath +"metadataReport.html");
 
                 return true;
             }

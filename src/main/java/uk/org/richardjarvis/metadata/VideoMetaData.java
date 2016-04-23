@@ -7,7 +7,7 @@ import org.apache.spark.sql.DataFrame;
  */
 public class VideoMetaData implements MetaData {
     @Override
-    public void generateReport(String inputPath, DataFrame dataFrame, String outputPath) {
+    public void generateReport(String inputPath, DataFrame inputData, DataFrame derivedData, String outputPath) {
 
     }
 }

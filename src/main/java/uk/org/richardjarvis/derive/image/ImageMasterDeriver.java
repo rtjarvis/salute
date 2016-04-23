@@ -13,7 +13,7 @@ public class ImageMasterDeriver implements ImageDeriveInterface {
 
         DataFrame output = new HueSaturationLuminanceDeriver().derive(input, metaData);
         output = new ColourNameDeriver().derive(output, metaData);
-
+        output = new BlackAndWhiteDeriver().derive(output, metaData);
         return output;
     }
 }

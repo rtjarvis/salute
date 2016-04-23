@@ -34,13 +34,14 @@ public class AudioMetaData implements MetaData {
     }
 
     @Override
-    public void generateReport(String inputPath, DataFrame dataFrame, String outputPath) {
+    public void generateReport(String inputPath, DataFrame inputData, DataFrame derivedData, String outputPath) {
         StringBuilder sb = new StringBuilder();
 
         ReportUtil.addHTMLHeader(sb, "Audio File Report");
         ReportUtil.addBodyStart(sb);
         ReportUtil.addLinkToFile(sb, inputPath);
         ReportUtil.addHTMLTable(sb, "Audio MetaData Properties", audioFileMetadata);
+        ReportUtil.addHTMLTable(sb, "Sample Output Data", derivedData, 10);
         ReportUtil.addBodyEnd(sb);
         ReportUtil.addHTMLFooter(sb);
 

@@ -12,23 +12,24 @@ import scala.collection.mutable.WrappedArray;
 import uk.org.richardjarvis.metadata.FieldMeaning;
 import uk.org.richardjarvis.metadata.ImageMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
-import uk.org.richardjarvis.utils.image.ColourNamer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by rjarvis on 20/04/16.
  */
-public class ColourNameDeriver implements ImageDeriveInterface {
+public class BlackAndWhiteDeriver implements ImageDeriveInterface {
     @Override
     public DataFrame derive(DataFrame input, ImageMetaData metaData) {
 
-        List<String> hslDataColumnNames = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.HSL_IMAGE_DATA));
+        List<String> imageDataColumnNames = DataFrameUtils.getColumnsNames(DataFrameUtils.getColumnsOfMeaning(input, FieldMeaning.MeaningType.RAW_IMAGE_DATA));
 
-        if (hslDataColumnNames.size() == 0)
+        if (imageDataColumnNames.size() == 0)
             return input;
 
-        StructType newSchema = getUpdatedSchema(input);
+        StructType newSchema = getUpdatedSchema(input, metaData);
 
         int originalFieldCount = input.schema().fieldNames().length;
         int newFieldCount = newSchema.size();
@@ -43,11 +44,16 @@ public class ColourNameDeriver implements ImageDeriveInterface {
                 fieldIndex++;
             }
 
-            for (String column : hslDataColumnNames) {
-
-                Map<String, Integer> colourDist = new HashMap<>();
+            for (String column : imageDataColumnNames) {
 
                 WrappedArray<WrappedArray<WrappedArray<Double>>> data = row.getAs(row.fieldIndex(column));
+
+                Integer width = row.getInt(0);
+                Integer height = row.getInt(1);
+
+                // algrothim from http://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
+
+                Double[][] imageDataArray = new Double[height][width];
 
                 Iterator<WrappedArray<WrappedArray<Double>>> itr = data.iterator();
 
@@ -56,30 +62,19 @@ public class ColourNameDeriver implements ImageDeriveInterface {
                     Iterator<WrappedArray<Double>> rowItr = itr.next().iterator();
                     int x = 0;
                     while (rowItr.hasNext()) {
-                        WrappedArray<Double> pixel = rowItr.next();
-                        Double hue = pixel.apply(0);
-                        Double saturation = pixel.apply(1);
-                        Double luminance = pixel.apply(2);
 
-                        String colourName = ColourNamer.getColourName(hue, saturation, luminance).getName();
-                        Integer existingCount = colourDist.get(colourName);
-                        if (existingCount == null)
-                            existingCount = 0;
-                        colourDist.put(colourName, existingCount+1);
+                        WrappedArray<Double> pixel = rowItr.next();
+                        Double red = pixel.apply(0);
+                        Double green = pixel.apply(1);
+                        Double blue = pixel.apply(2);
+                        imageDataArray[y][x] = 0.21 * red + 0.72 * green + 0.07 * blue; // see http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
                         x++;
                     }
                     y++;
                 }
 
-                for (String colourName : ColourNamer.getNames()) {
-                    Integer count = colourDist.get(colourName);
-                    if (count == null)
-                        count = 0;
-
-                    outputRow[fieldIndex++] = count;
-                }
+                outputRow[fieldIndex++] = imageDataArray;
             }
-
             return RowFactory.create(outputRow);
 
         });
@@ -88,15 +83,12 @@ public class ColourNameDeriver implements ImageDeriveInterface {
 
     }
 
-    public StructType getUpdatedSchema(DataFrame input) {
+    public StructType getUpdatedSchema(DataFrame input, ImageMetaData metaData) {
 
         List<StructField> newColumns = new ArrayList<>();
 
         newColumns.addAll(Arrays.asList(input.schema().fields()));
-        List<String> names = ColourNamer.getNames();
-        for (String colourName : names) {
-            newColumns.add(new StructField(colourName, DataTypes.IntegerType, true, DataFrameUtils.getMetadata(FieldMeaning.MeaningType.COLOUR_NAME, null)));
-        }
+        newColumns.add(new StructField("BlackAndWhiteImageData", DataTypes.createArrayType(DataTypes.createArrayType(DataTypes.DoubleType)), false, DataFrameUtils.getMetadata(FieldMeaning.MeaningType.BLACK_AND_WHITE_IMAGE_DATA, null)));
 
         return new StructType(newColumns.toArray(new StructField[0]));
     }
