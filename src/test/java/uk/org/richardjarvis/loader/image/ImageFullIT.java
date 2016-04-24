@@ -42,4 +42,19 @@ public class ImageFullIT {
 
     }
 
+    @Test
+    public void testProcess3() throws Exception {
+
+        String outputDir = "/tmp/test_image.json";
+        File output = new File(outputDir);
+        FileUtils.deleteDirectory(output);
+
+        URL testFile = getClass().getResource("/image/O.png");
+
+        FileLoader fl = new FileLoader();
+
+        fl.process(testFile.getPath(), outputDir);
+
+    }
+
 }
