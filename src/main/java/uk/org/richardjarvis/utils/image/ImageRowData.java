@@ -1,10 +1,9 @@
 package uk.org.richardjarvis.utils.image;
 
 import scala.Tuple3;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

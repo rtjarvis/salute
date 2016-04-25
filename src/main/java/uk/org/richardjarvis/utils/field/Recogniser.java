@@ -1,13 +1,10 @@
 package uk.org.richardjarvis.utils.field;
 
-import com.google.i18n.phonenumbers.CountryCodeToRegionCodeMap;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
-import scala.Tuple2;
-import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static uk.org.richardjarvis.metadata.FieldMeaning.MeaningType;
+import static uk.org.richardjarvis.metadata.text.FieldMeaning.MeaningType;
 
 /**
  * Class for recognising the semantic of a String

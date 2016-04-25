@@ -5,33 +5,24 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.MetadataBuilder;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
-import scala.Tuple3;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 import uk.org.richardjarvis.utils.file.FileUtils;
-import uk.org.richardjarvis.utils.image.ImageRowData;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

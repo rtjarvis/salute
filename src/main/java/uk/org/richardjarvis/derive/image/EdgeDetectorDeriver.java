@@ -7,10 +7,9 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import scala.collection.Iterator;
 import scala.collection.mutable.WrappedArray;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ public class EdgeDetectorDeriver implements ImageDeriveInterface {
         if (blackAndWhiteImageData.size() == 0)
             return input;
 
-        StructType newSchema = getUpdatedSchema(input, metaData);
+        StructType newSchema = getUpdatedSchema(input);
 
         int originalFieldCount = input.schema().fieldNames().length;
         int newFieldCount = newSchema.size();
@@ -91,7 +90,7 @@ public class EdgeDetectorDeriver implements ImageDeriveInterface {
 
     }
 
-    public StructType getUpdatedSchema(DataFrame input, ImageMetaData metaData) {
+    public StructType getUpdatedSchema(DataFrame input) {
 
         List<StructField> newColumns = new ArrayList<>();
 

@@ -1,11 +1,14 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.text;
 
 import org.apache.spark.sql.DataFrame;
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import uk.org.richardjarvis.utils.DataFrameUtils;
+import uk.org.richardjarvis.metadata.MetaData;
+import uk.org.richardjarvis.metadata.text.CSVProperties;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldProperties;
+import uk.org.richardjarvis.metadata.text.Statistics;
 import uk.org.richardjarvis.utils.file.FileUtils;
 import uk.org.richardjarvis.utils.report.ReportUtil;
 
@@ -14,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by rjarvis on 26/02/16.

@@ -1,9 +1,6 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.text;
 
 import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.MetadataBuilder;
-import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;

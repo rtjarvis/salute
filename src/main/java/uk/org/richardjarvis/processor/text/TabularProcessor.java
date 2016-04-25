@@ -7,10 +7,10 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.slf4j.LoggerFactory;
-import uk.org.richardjarvis.metadata.CSVProperties;
-import uk.org.richardjarvis.metadata.FieldProperties;
+import uk.org.richardjarvis.metadata.text.CSVProperties;
+import uk.org.richardjarvis.metadata.text.FieldProperties;
 import uk.org.richardjarvis.metadata.MetaData;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.utils.SparkProvider;
 
@@ -84,8 +84,7 @@ public class TabularProcessor implements ProcessorInterface {
 
     private TabularMetaData getTabularMetaData(List<CSVRecord> rows, CSVProperties csvProperties) throws IOException {
 
-
-        List<FieldProperties> firstRowFieldPropertiesList = getRow(rows.get(0));   // store the first row separately
+        List<FieldProperties> firstRowFieldPropertiesList = getRow(rows.get(0));       // store the first row separately
         List<FieldProperties> bulkFieldPropertiesList = getRow(rows.get(1));           // initialise from the second row onward
 
         if (rows.size() > 2) {
@@ -96,7 +95,6 @@ public class TabularProcessor implements ProcessorInterface {
         boolean hasHeaderRow = detectHeaderRow(firstRowFieldPropertiesList, bulkFieldPropertiesList);
 
         if (hasHeaderRow) {
-
 
             totalFields = mergeHeader(bulkFieldPropertiesList, rows.get(0));
 

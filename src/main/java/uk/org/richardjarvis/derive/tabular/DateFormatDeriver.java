@@ -3,9 +3,9 @@ package uk.org.richardjarvis.derive.tabular;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.*;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.FieldProperties;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldProperties;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.time.ZonedDateTime;

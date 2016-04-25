@@ -5,8 +5,7 @@ package uk.org.richardjarvis.loader;
  */
 public class FileAssessor {
 
-    public enum FileType {ARCHIVE, COMPRESSED, AUDIO, IMAGE, TEXT, UNKNOWN}
-
+    public enum FileType {ARCHIVE, COMPRESSED, AUDIO, IMAGE, TEXT, JSON, UNKNOWN}
 
     public static boolean isArchive(String streamType) {
         return getType(streamType).equals(FileType.ARCHIVE);
@@ -33,6 +32,9 @@ public class FileAssessor {
 
         if ("image/png".contains(streamType))
             return FileType.IMAGE;
+
+        if ("application/json".contains(streamType))
+            return FileType.JSON;
 
         return FileType.UNKNOWN;
     }

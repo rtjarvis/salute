@@ -1,7 +1,7 @@
 package uk.org.richardjarvis.derive.image;
 
 import org.apache.spark.sql.DataFrame;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 
 /**
  * Created by rjarvis on 29/02/16.

@@ -1,9 +1,5 @@
 package uk.org.richardjarvis.processor.audio;
 
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.TransformType;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -11,10 +7,8 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.*;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.*;
 import org.xml.sax.SAXException;
-import uk.org.richardjarvis.metadata.AudioMetaData;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.audio.AudioMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.utils.DataFrameUtils;

@@ -1,7 +1,8 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.audio;
 
 import org.apache.spark.sql.DataFrame;
 import org.apache.tika.metadata.Metadata;
+import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.utils.file.FileUtils;
 import uk.org.richardjarvis.utils.report.ReportUtil;
 

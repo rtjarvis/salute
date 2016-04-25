@@ -5,7 +5,10 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.*;
-import uk.org.richardjarvis.metadata.*;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldStatistics;
+import uk.org.richardjarvis.metadata.text.Statistics;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;

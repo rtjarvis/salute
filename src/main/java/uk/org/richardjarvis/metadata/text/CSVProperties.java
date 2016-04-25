@@ -1,9 +1,8 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.text;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.slf4j.LoggerFactory;
-import scala.Char;
 import uk.org.richardjarvis.utils.SparkProvider;
 
 import java.io.IOException;

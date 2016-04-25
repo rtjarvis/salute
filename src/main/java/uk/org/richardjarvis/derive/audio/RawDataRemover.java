@@ -2,8 +2,8 @@ package uk.org.richardjarvis.derive.audio;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
-import uk.org.richardjarvis.metadata.AudioMetaData;
-import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.audio.AudioMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.List;

@@ -1,10 +1,12 @@
 package uk.org.richardjarvis.utils;
 
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.*;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.utils.field.Recogniser;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,5 +71,47 @@ public class DataFrameUtils {
         return metadataBuilder.build();
     }
 
+    public static StructType unNestColumns(StructType schema) {
+        return new StructType(unNestColumns("", schema).toArray(new StructField[0]));
+    }
 
+    private static List<StructField> unNestColumns(String prefix, StructType schema) {
+
+        List<StructField> colNames = new ArrayList<>();
+
+        for (StructField field : schema.fields()) {
+            String name = ((prefix.length() > 0) ? prefix + "." : "") + field.name();
+
+            if (field.dataType().typeName().equals("struct")) {
+                colNames.addAll(unNestColumns(name, (StructType) field.dataType()));
+            } else {
+                colNames.add(new StructField(name, field.dataType(), field.nullable(), field.metadata()));
+            }
+
+        }
+        return colNames;
+
+    }
+
+    public static Row unNestData(Row row) {
+        return RowFactory.create(unNestDataToList(row).toArray(new Object[0]));
+    }
+
+    private static List<Object> unNestDataToList(Row row) {
+
+        List<Object> data = new ArrayList<>();
+
+        for (int i = 0; i < row.size(); i++) {
+
+            Object cell = row.get(i);
+            if (cell instanceof Row) {
+                data.addAll(unNestDataToList((Row)cell));
+            } else {
+                data.add(cell);
+            }
+
+        }
+
+        return data;
+    }
 }

@@ -1,7 +1,7 @@
 package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.DataFrame;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 
 /**
  * The Master Dervier. This sets the order and selection of derivations that will be performed on Tabular Data

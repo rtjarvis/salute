@@ -10,7 +10,7 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 import uk.org.richardjarvis.utils.file.FileUtils;
 

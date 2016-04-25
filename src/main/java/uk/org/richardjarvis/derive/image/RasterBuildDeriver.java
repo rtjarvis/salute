@@ -1,13 +1,10 @@
 package uk.org.richardjarvis.derive.image;
 
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;

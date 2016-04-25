@@ -9,13 +9,12 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public class OpenNLPEntityExtractor implements Serializable {
 

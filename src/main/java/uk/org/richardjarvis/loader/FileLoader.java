@@ -7,7 +7,6 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
@@ -17,14 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.richardjarvis.derive.audio.AudioMasterDeriver;
 import uk.org.richardjarvis.derive.image.ImageMasterDeriver;
+import uk.org.richardjarvis.derive.nested.NestedMasterDeriver;
 import uk.org.richardjarvis.derive.tabular.TabularMasterDeriver;
-import uk.org.richardjarvis.metadata.AudioMetaData;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.audio.AudioMetaData;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 import uk.org.richardjarvis.metadata.MetaData;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.nested.NestedMetaData;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.processor.ProcessorInterface;
 import uk.org.richardjarvis.processor.audio.AudioProcessor;
 import uk.org.richardjarvis.processor.image.ImageProcessor;
+import uk.org.richardjarvis.processor.nested.MultiLineJSONProcessor;
 import uk.org.richardjarvis.processor.text.TabularProcessor;
 import uk.org.richardjarvis.utils.SparkProvider;
 import uk.org.richardjarvis.writer.CSVWriter;
@@ -93,6 +95,10 @@ public class FileLoader {
                     LOGGER.info("Processing file as text");
                     processor = new TabularProcessor();
                     break;
+                case JSON:
+                    LOGGER.info("Processing file as JSON");
+                    processor = new MultiLineJSONProcessor();
+                    break;
                 case IMAGE:
                     LOGGER.info("Processing file as an image");
                     processor = new ImageProcessor();
@@ -138,18 +144,21 @@ public class FileLoader {
                     ImageMasterDeriver masterDeriver = new ImageMasterDeriver();
                     derivedData = masterDeriver.derive(data, (ImageMetaData) metaData);
 
+                } else if (metaData instanceof NestedMetaData) {
+
+                    NestedMasterDeriver masterDeriver = new NestedMasterDeriver();
+                    derivedData = masterDeriver.derive(data, (NestedMetaData) metaData);
                 }
                 WriterInterface writer = new CSVWriter();
 
                 writer.write(derivedData, metaData, outputPath);
 
-                metaData.generateReport(inputPath, data, derivedData, outputPath +"metadataReport.html");
+                metaData.generateReport(inputPath, data, derivedData, outputPath + "metadataReport.html");
 
                 return true;
             }
 
         }
-
 
         return false;
     }

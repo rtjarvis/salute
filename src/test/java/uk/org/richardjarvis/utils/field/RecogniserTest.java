@@ -1,11 +1,9 @@
 package uk.org.richardjarvis.utils.field;
 
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.junit.Test;
-import uk.org.richardjarvis.metadata.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;

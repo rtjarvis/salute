@@ -1,7 +1,7 @@
 package uk.org.richardjarvis.processor.text;
 
 import org.junit.Test;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 
 import java.io.File;
 import java.io.FileWriter;

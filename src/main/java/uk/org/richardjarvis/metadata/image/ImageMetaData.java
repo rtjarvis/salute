@@ -1,8 +1,9 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.image;
 
 import org.apache.spark.sql.DataFrame;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.Property;
+import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.utils.file.FileUtils;
 import uk.org.richardjarvis.utils.report.ReportUtil;
 

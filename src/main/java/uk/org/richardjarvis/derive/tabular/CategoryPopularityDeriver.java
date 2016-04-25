@@ -7,10 +7,10 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.FieldStatistics;
-import uk.org.richardjarvis.metadata.Statistics;
-import uk.org.richardjarvis.metadata.TabularMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldStatistics;
+import uk.org.richardjarvis.metadata.text.Statistics;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;

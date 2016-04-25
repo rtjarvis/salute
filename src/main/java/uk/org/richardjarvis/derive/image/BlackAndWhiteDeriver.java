@@ -9,8 +9,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import scala.collection.Iterator;
 import scala.collection.mutable.WrappedArray;
-import uk.org.richardjarvis.metadata.FieldMeaning;
-import uk.org.richardjarvis.metadata.ImageMetaData;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.image.ImageMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.util.ArrayList;

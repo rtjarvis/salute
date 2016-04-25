@@ -7,7 +7,6 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
-import uk.org.richardjarvis.metadata.ImageMetaData;
 
 import java.io.*;
 import java.net.URL;

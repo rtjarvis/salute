@@ -2,7 +2,10 @@ package uk.org.richardjarvis.derive.tabular;
 
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.Metadata;
-import uk.org.richardjarvis.metadata.*;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
+import uk.org.richardjarvis.metadata.text.FieldProperties;
+import uk.org.richardjarvis.metadata.text.FieldStatistics;
+import uk.org.richardjarvis.metadata.text.TabularMetaData;
 import uk.org.richardjarvis.utils.DataFrameUtils;
 
 

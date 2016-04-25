@@ -1,4 +1,4 @@
-package uk.org.richardjarvis.metadata;
+package uk.org.richardjarvis.metadata.text;
 
 import java.io.Serializable;
 import java.util.ArrayList;
