@@ -109,7 +109,7 @@ public class RecogniserTest {
         Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("123456");
         assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.NUMERIC, null, DataTypes.IntegerType)));
         assertTrue(meanings.contains(textMeaning));
-        assertEquals(2, meanings.size());
+        assertEquals(3, meanings.size());
     }
 
     @Test
