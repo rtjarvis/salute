@@ -47,8 +47,9 @@ public class RecogniserTest {
         FieldMeaning textMeaning = new FieldMeaning(FieldMeaning.MeaningType.TEXT, null, DataTypes.StringType);
         Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("192.168.1.1");
         assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.IPv4, null, DataTypes.StringType)));
+        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.PHONE_NUMBER, "AT|RS|BE|SE|SI|CO|DZ|FI|HR|HU|IE|IQ|KH|MM|NG|PE", DataTypes.StringType)));
         assertTrue(meanings.contains(textMeaning));
-        assertEquals(2, meanings.size());
+        assertEquals(3, meanings.size());
     }
 
     @Test
@@ -110,24 +111,25 @@ public class RecogniserTest {
         Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("123456");
         assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.NUMERIC, null, DataTypes.IntegerType)));
         assertTrue(meanings.contains(textMeaning));
-        assertEquals(2, meanings.size());
+        assertEquals(3, meanings.size());
     }
 
     @Test
     public void getPossibleMeaningPhoneNumber() throws Exception {
-//        FieldMeaning textMeaning = new FieldMeaning(FieldMeaning.MeaningType.TEXT, null, DataTypes.StringType);
-//        Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("01234567890");
-//        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.NUMERIC, null, DataTypes.IntegerType)));
-//        assertTrue(meanings.contains(textMeaning));
-//        assertEquals(2, meanings.size());
+        FieldMeaning textMeaning = new FieldMeaning(FieldMeaning.MeaningType.TEXT, null, DataTypes.StringType);
+        Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("01234567890");
+        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.NUMERIC, null, DataTypes.IntegerType)));
+        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.PHONE_NUMBER, "AT|RS|BR|VN|GB|IN|IT|KR", DataTypes.StringType)));
+        assertTrue(meanings.contains(textMeaning));
+        assertEquals(3, meanings.size());
     }
 
     @Test
     public void getPossibleMeaningPhoneNumber2() throws Exception {
-//        FieldMeaning textMeaning = new FieldMeaning(FieldMeaning.MeaningType.TEXT, null, DataTypes.StringType);
-//        Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("+441234567890");
-//        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.PHONE_NUMBER, "GB", DataTypes.StringType)));
-//        assertTrue(meanings.contains(textMeaning));
-//        assertEquals(2, meanings.size());
+        FieldMeaning textMeaning = new FieldMeaning(FieldMeaning.MeaningType.TEXT, null, DataTypes.StringType);
+        Set<FieldMeaning> meanings = Recogniser.getPossibleMeanings("+441234567890");
+        assertTrue(meanings.contains(new FieldMeaning(FieldMeaning.MeaningType.PHONE_NUMBER, "GB", DataTypes.StringType)));
+        assertTrue(meanings.contains(textMeaning));
+        assertEquals(2, meanings.size());
     }
 }
