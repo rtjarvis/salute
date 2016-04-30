@@ -1,11 +1,9 @@
 package uk.org.richardjarvis.utils.field;
 
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import org.apache.spark.sql.types.DataTypes;
 import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -76,6 +74,7 @@ public class Recogniser {
                         break;
                     case PHONE_NUMBER:
                         String format = countriesForPhoneNumber(value, meaning.getFormat());
+                        System.out.println(value + "\t" + format);
                         if (format.length() > 0) {
                             meaning.setFormat(format);
                             types.add(meaning);
@@ -90,36 +89,10 @@ public class Recogniser {
         return types;
     }
 
-    public static String countriesForPhoneNumber(String value, String format) {
+    public static synchronized String countriesForPhoneNumber(String value, String format) {
 
-        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+        return "";
 
-        String[] possibleCountryCodes;
-        if (format != null) {
-            possibleCountryCodes = format.split(COUNTRY_CODE_SEPARATOR);
-        } else {
-            possibleCountryCodes = phoneUtil.getSupportedRegions().toArray(new String[0]);
-        }
-
-        StringBuilder matchingCountries = new StringBuilder();
-        boolean first = true;
-        for (String countryCode : possibleCountryCodes) {
-
-            try {
-                Phonenumber.PhoneNumber test = phoneUtil.parse(value, countryCode);
-                if (phoneUtil.isValidNumberForRegion(test, countryCode)) {
-                    if (!first) {
-                        matchingCountries.append("|");
-                    }
-                    matchingCountries.append(countryCode);
-                    first = false;
-                }
-            } catch (NumberParseException e) {
-            }
-
-        }
-
-        return matchingCountries.toString();
     }
 
     /**
