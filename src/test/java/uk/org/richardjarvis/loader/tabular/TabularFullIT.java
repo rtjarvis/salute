@@ -90,15 +90,15 @@ public class TabularFullIT {
     @Test
     public void testProcess6() throws Exception {
 
-        String outputDir = "/tmp/test5.json";
-        File output = new File(outputDir);
-        FileUtils.deleteDirectory(output);
-
-        URL testFile = getClass().getResource("/text/csv_dirs.tar");
-
-        FileLoader fl = new FileLoader();
-
-        fl.process(testFile.getPath(), outputDir);
+//        String outputDir = "/tmp/test5.json";
+//        File output = new File(outputDir);
+//        FileUtils.deleteDirectory(output);
+//
+//        URL testFile = getClass().getResource("/text/csv_dirs.tar");
+//
+//        FileLoader fl = new FileLoader();
+//
+//        fl.process(testFile.getPath(), outputDir);
 
     }
 

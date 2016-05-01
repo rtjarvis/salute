@@ -16,6 +16,10 @@ public class FieldProperties implements Serializable {
     private List<FieldMeaning> possibleMeanings = null;
     private boolean nullable = true;
 
+    public List<FieldMeaning> getPossibleMeanings() {
+        return possibleMeanings;
+    }
+
     public FieldProperties(String value) {
         update(value);
     }
@@ -35,6 +39,20 @@ public class FieldProperties implements Serializable {
                 return fieldMeaning;
         }
         return possibleMeanings.get(0);
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FieldProperties that = (FieldProperties) o;
+
+        if (isNullable() != that.isNullable()) return false;
+        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
+
+        return getPossibleMeanings() != null ? getPossibleMeanings().containsAll(that.getPossibleMeanings()) : that.getPossibleMeanings() == null;
 
     }
 

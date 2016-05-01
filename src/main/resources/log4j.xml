@@ -3,7 +3,7 @@
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://jakarta.apache.org/log4j/ ">
+                     xsi:schemaLocation="http://jakarta.apache.org/log4j/">
 
 
     <appender name="console" class="org.apache.log4j.ConsoleAppender">
@@ -17,5 +17,13 @@
         <priority value="WARN,ERROR"/>
         <appender-ref ref="console"/>
     </root>
+
+    <logger name="org.apache.spark.*">
+        <level value="FATAL"/>
+    </logger>
+
+    <logger name="uk.org.richardjarvis.*">
+        <level value="INFO"/>
+    </logger>
 
 </log4j:configuration>

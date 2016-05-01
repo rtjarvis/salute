@@ -8,6 +8,7 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.slf4j.LoggerFactory;
 import uk.org.richardjarvis.metadata.text.CSVProperties;
+import uk.org.richardjarvis.metadata.text.FieldMeaning;
 import uk.org.richardjarvis.metadata.text.FieldProperties;
 import uk.org.richardjarvis.metadata.MetaData;
 import uk.org.richardjarvis.metadata.text.TabularMetaData;
@@ -136,13 +137,19 @@ public class TabularProcessor implements ProcessorInterface {
 
         boolean hasHeaderRow = false;
 
+        List<String> namesSeen = new ArrayList<>();
+
         for (int fieldIndex = 0; fieldIndex < firstRowFieldPropertiesList.size(); fieldIndex++) {
             FieldProperties firstRow = firstRowFieldPropertiesList.get(fieldIndex);
             FieldProperties remainingRows = bulkFieldPropertiesList.get(fieldIndex);
 
-            if (firstRow.getMeaning().getType() == DataTypes.StringType && (remainingRows.getMeaning().getType() != DataTypes.StringType || remainingRows.getMeaning().getMeaningType() != firstRow.getMeaning().getMeaningType()))
+            // if there content is repeated, unlikely to be a header
+            if (namesSeen.contains(firstRow.getName())) return false;
+
+            if (firstRow.getMeaning().getType() == DataTypes.StringType && (remainingRows.getMeaning().getType() != DataTypes.StringType || firstRow.equals(remainingRows)))
                 hasHeaderRow = true;
 
+            namesSeen.add(firstRow.getName());
         }
 
         return hasHeaderRow;
