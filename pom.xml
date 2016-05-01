@@ -75,8 +75,8 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.21</version>
+            <artifactId>slf4j-log4j13</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
