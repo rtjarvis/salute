@@ -23,7 +23,7 @@
     </logger>
 
     <logger name="uk.org.richardjarvis.*">
-        <level value="INFO"/>
+        <level value="ERROR"/>
     </logger>
 
 </log4j:configuration>
