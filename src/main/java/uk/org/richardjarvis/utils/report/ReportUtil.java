@@ -4,6 +4,7 @@ import jdk.nashorn.api.scripting.URLReader;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.tika.metadata.Metadata;
+import uk.org.richardjarvis.utils.DataFrameUtils;
 
 import java.io.*;
 import java.net.URL;
@@ -95,7 +96,7 @@ public class ReportUtil {
         if (data == null)
             return;
 
-        Row[] rows = data.head(rowCount);
+        List<Row> rows = DataFrameUtils.getSampleHead(data, rowCount);
 
         List<String> fieldNames = Arrays.asList(data.schema().fieldNames());
         addTableTitle(stringBuilder, tableTitle);

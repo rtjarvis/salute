@@ -105,7 +105,7 @@ public class DataFrameUtils {
 
             Object cell = row.get(i);
             if (cell instanceof Row) {
-                data.addAll(unNestDataToList((Row)cell));
+                data.addAll(unNestDataToList((Row) cell));
             } else {
                 data.add(cell);
             }
@@ -113,5 +113,35 @@ public class DataFrameUtils {
         }
 
         return data;
+    }
+
+    public static List<Row> getSampleHead(DataFrame df, int rowCount) {
+
+        final int maxLength = 50;
+        final String ellipses = "...";
+
+        //String string = df.showString(rowCount, true);
+        List<Row> rows = df.limit(rowCount).javaRDD().map(row -> {
+                    Object[] o = new Object[row.size()];
+
+                    for (int i = 0; i < row.size(); i++) {
+                        Object obj = row.get(i);
+                        if (obj == null) {
+                            o[i] = null;
+                        } else {
+                            String value = obj.toString();
+
+                            if (value.length() > maxLength) {
+                                value = value.substring(0, maxLength - ellipses.length() - 1) + ellipses;
+                            }
+                            o[i] = value;
+                        }
+                    }
+                    return RowFactory.create(o);
+
+                }).collect();
+
+        return rows;
+
     }
 }
