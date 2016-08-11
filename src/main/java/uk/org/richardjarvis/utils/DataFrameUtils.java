@@ -120,7 +120,6 @@ public class DataFrameUtils {
         final int maxLength = 50;
         final String ellipses = "...";
 
-        //String string = df.showString(rowCount, true);
         List<Row> rows = df.limit(rowCount).javaRDD().map(row -> {
                     Object[] o = new Object[row.size()];
 

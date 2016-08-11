@@ -3,6 +3,7 @@ package uk.org.richardjarvis.metadata.text;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.loader.LoaderConfig;
 import uk.org.richardjarvis.utils.SparkProvider;
 
 import java.io.IOException;
@@ -21,9 +22,9 @@ public class CSVProperties {
     private JavaSparkContext javaSparkContext;
     private CSVFormat csvFormat;
 
-    public CSVProperties(List<String> rows) throws IOException {
+    public CSVProperties(List<String> rows, Character delimiter, Character stringEnclosure) throws IOException {
         this.javaSparkContext = SparkProvider.getSparkContext();
-        getCSVProperties(rows);
+        getCSVProperties(rows, delimiter, stringEnclosure);
     }
 
     public Character getDelimiter() {
@@ -39,23 +40,30 @@ public class CSVProperties {
         return "Using " + (stringEnclosure == null ? "nothing" : "'" + stringEnclosure + "'") + " as string enclosure and '" + delimiter + "' as the delimiter";
     }
 
-    private void getCSVProperties(List<String> rows) throws IOException {
+    private void getCSVProperties(List<String> rows, Character suggestedDelimiter, Character suggestedStringEnclosure) throws IOException {
         // detect delimiter
         LOGGER.info("Looking for string enclosure character");
-        stringEnclosure = getStringEscape(rows);
-        LOGGER.info("Found candidate string enclosure: '" + stringEnclosure + "' but this could be the delimiter");
-
-
-        LOGGER.info("Search for delimiter assuming that '" + stringEnclosure + "' is the string enclosure character");
-        delimiter = getDelimiter(rows, stringEnclosure);
-
-        if (delimiter == null) {
-            LOGGER.info("Unable to detect delimiter using that string escape. Assume that '" + stringEnclosure + "' is actually a delimiter");
-            delimiter = stringEnclosure;
-            stringEnclosure = null;
+        if (suggestedStringEnclosure == null) {
+            this.stringEnclosure = getStringEscape(rows);
+            LOGGER.info("Found candidate string enclosure: '" + suggestedStringEnclosure + "' but this could be the delimiter");
+        } else if (suggestedStringEnclosure.equals(LoaderConfig.NO_STRING_ESCAPE)) {
+            this.stringEnclosure = null;
         } else {
-            LOGGER.info("Found candidate delimiter: '" + delimiter + "'");
+            this.stringEnclosure = suggestedStringEnclosure;
         }
+
+        if (suggestedDelimiter == null) {
+            LOGGER.info("Search for delimiter assuming that '" + suggestedStringEnclosure + "' is the string enclosure character");
+            suggestedDelimiter = getDelimiter(rows, this.stringEnclosure);
+            if (suggestedDelimiter == null) {
+                LOGGER.info("Unable to detect delimiter using that string escape. Assume that '" + suggestedStringEnclosure + "' is actually a delimiter");
+                suggestedDelimiter = this.stringEnclosure;
+                this.stringEnclosure = null;
+            } else {
+                LOGGER.info("Found candidate delimiter: '" + suggestedDelimiter + "'");
+            }
+        }
+        this.delimiter = suggestedDelimiter;
 
     }
 
@@ -95,7 +103,7 @@ public class CSVProperties {
         return candidates;
     }
 
-    private Character getProbableCommonFrequencyCharacter(List<String> rows, List<Character> probableChars, List<Character> unlikelyChars,  Character stringEscape) throws IOException {
+    private Character getProbableCommonFrequencyCharacter(List<String> rows, List<Character> probableChars, List<Character> unlikelyChars, Character stringEscape) throws IOException {
 
         Set<Character> commonFrequencyCharacters = getCommonFrequencyCharacter(rows, stringEscape);
 

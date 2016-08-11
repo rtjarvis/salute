@@ -3,6 +3,7 @@ package uk.org.richardjarvis.utils.field;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.spark.sql.types.DataTypes;
 import uk.org.richardjarvis.metadata.text.FieldMeaning;
 
@@ -56,7 +57,8 @@ public class Recogniser {
         typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yy HH:mm:ss", DataTypes.StringType, null));
         typeSet.add(new FieldMeaning(MeaningType.DATE, "MM/dd/yyyy HH:mm:ss", DataTypes.StringType, null));
         typeSet.add(new FieldMeaning(MeaningType.PHONE_NUMBER, null, DataTypes.StringType, null));
-
+        typeSet.add(new FieldMeaning(MeaningType.LATITUDE, null, DataTypes.DoubleType, null));
+        typeSet.add(new FieldMeaning(MeaningType.LONGITUDE, null, DataTypes.DoubleType, null));
     }
 
     /**
@@ -77,7 +79,21 @@ public class Recogniser {
                     case PHONE_NUMBER:
                         String format = countriesForPhoneNumber(value, meaning.getFormat());
                         if (format.length() > 0) {
-                            types.add(new FieldMeaning(meaning.getMeaningType(),format,meaning.getType()));
+                            types.add(new FieldMeaning(meaning.getMeaningType(), format, meaning.getType()));
+                        }
+                        break;
+                    case LATITUDE:
+                        if (NumberUtils.isNumber(value)) {
+                            Double doubleValue = Double.parseDouble(value);
+                            if (doubleValue <= 90 && doubleValue >= -90)
+                                types.add(meaning);
+                        }
+                        break;
+                    case LONGITUDE:
+                        if (NumberUtils.isNumber(value)) {
+                            Double doubleValue = Double.parseDouble(value);
+                            if (doubleValue <= -180 && doubleValue >= 180)
+                                types.add(meaning);
                         }
                         break;
                 }

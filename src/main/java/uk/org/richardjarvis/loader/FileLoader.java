@@ -1,6 +1,7 @@
 package uk.org.richardjarvis.loader;
 
 import com.google.common.io.Files;
+import org.apache.commons.cli.*;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -10,7 +11,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.execution.columnar.STRING;
+import org.apache.spark.util.SystemClock;
 import org.apache.tika.Tika;
+import org.apache.tika.parser.DefaultParser;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,26 +54,42 @@ public class FileLoader {
 
         FileLoader fl = new FileLoader();
 
-        fl.process(args[0], args[1]);
+        Options options = LoaderConfig.getOptions();
 
+        CommandLineParser parser = new org.apache.commons.cli.DefaultParser();
+
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            fl.process(new LoaderConfig(cmd));
+
+        } catch (ParseException e) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("salute", options);
+        }
     }
 
     public FileLoader() {
         this.tika = new Tika();
     }
 
+    public boolean process(String inputPath, String outputPath) throws CompressorException, ArchiveException, JSONException, IOException {
+        LoaderConfig config = new LoaderConfig(inputPath,outputPath);
+        return process(config);
+    }
+
     /**
-     * @param inputPath  the path of the input file that is to be processed
-     * @param outputPath the path of the output file that will be saved
+     * @param config  the config of the job
      * @return success of processing
      * @throws IOException
      * @throws CompressorException
      * @throws ArchiveException
      * @throws JSONException
      */
-    public boolean process(String inputPath, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
+    public boolean process(LoaderConfig config) throws IOException, CompressorException, ArchiveException, JSONException {
 
-        LOGGER.info("Processing file : " + inputPath);
+        String inputPath=config.getInputPath();
+
+        LOGGER.info("Processing file : " +inputPath);
 
         String streamType = getType(inputPath);
 
@@ -79,7 +99,7 @@ public class FileLoader {
             LOGGER.info("Stream is archive. Processing archive");
             List<String> unpackedEntries = uncompressTar(inputPath);
             LOGGER.info("Packed File contained " + unpackedEntries.size() + " child streams.");
-            return process(unpackedEntries, outputPath);
+            return process(unpackedEntries, config);
 
         } else {
 
@@ -93,7 +113,7 @@ public class FileLoader {
             switch (FileAssessor.getType(streamType)) {
                 case TEXT:
                     LOGGER.info("Processing file as text");
-                    processor = new TabularProcessor();
+                    processor = new TabularProcessor(config);
                     break;
                 case JSON:
                     LOGGER.info("Processing file as JSON");
@@ -151,6 +171,8 @@ public class FileLoader {
                 }
                 WriterInterface writer = new CSVWriter();
 
+                String outputPath = config.getOutputPath();
+
                 writer.write(derivedData, metaData, outputPath);
 
                 metaData.generateReport(inputPath, data, derivedData, outputPath + "metadataReport.html");
@@ -163,12 +185,14 @@ public class FileLoader {
         return false;
     }
 
-
-    public boolean process(List<String> inputPaths, String outputPath) throws IOException, CompressorException, ArchiveException, JSONException {
+    public boolean process(List<String> inputPaths, LoaderConfig config) throws IOException, CompressorException, ArchiveException, JSONException {
 
         boolean success = true;
         for (String inputPath : inputPaths) {
-            success &= process(inputPath, outputPath + "_" + inputPath);
+            LoaderConfig newConfig = config.copy();
+            newConfig.setInputPath(inputPath);
+            newConfig.setOutputPath(config.getOutputPath() + "_" + inputPath);
+            success &= process(newConfig);
         }
         return success;
     }
@@ -179,7 +203,6 @@ public class FileLoader {
         return tika.detect(path);
 
     }
-
 
     private String removeCompression(String inputPath) throws CompressorException {
 
@@ -256,4 +279,6 @@ public class FileLoader {
             this.sqlContext = SparkProvider.getSQLContext();
         return sqlContext;
     }
+
+
 }

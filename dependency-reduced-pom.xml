@@ -20,6 +20,9 @@
                 <transformer>
                   <mainClass>uk.org.richardjarvis.loader.FileLoader</mainClass>
                 </transformer>
+                <transformer>
+                  <resource>reference.conf</resource>
+                </transformer>
               </transformers>
               <filters>
                 <filter>

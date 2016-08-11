@@ -7,6 +7,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.slf4j.LoggerFactory;
+import uk.org.richardjarvis.loader.LoaderConfig;
 import uk.org.richardjarvis.metadata.text.CSVProperties;
 import uk.org.richardjarvis.metadata.text.FieldMeaning;
 import uk.org.richardjarvis.metadata.text.FieldProperties;
@@ -26,17 +27,25 @@ public class TabularProcessor implements ProcessorInterface {
 
     public static int MAX_ROWS_TO_PROCESS = 100;
     private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(TabularProcessor.class);
+    private LoaderConfig config;
+
+    public TabularProcessor(LoaderConfig config) {
+        this.config = config;
+    }
+
+    public TabularProcessor() {
+    }
 
     @Override
     public TabularMetaData extractMetaData(String path) throws IOException {
 
         List<String> headRows = SparkProvider.getSparkContext().textFile(path).take(TabularProcessor.MAX_ROWS_TO_PROCESS);
 
-        CSVProperties csvProperties = new CSVProperties(headRows);
+        CSVProperties csvProperties = new CSVProperties(headRows, (config == null) ? null : config.getDelimiter(), (config == null) ? null : config.getStringEnclosure());
 
         List<CSVRecord> tableData = parseTable(headRows, csvProperties);
 
-        TabularMetaData tabularMetaData = getTabularMetaData(tableData, csvProperties);
+        TabularMetaData tabularMetaData = getTabularMetaData(tableData, csvProperties, (config == null) ? null : config.getHasHeader());
 
         return tabularMetaData;
 
@@ -50,11 +59,23 @@ public class TabularProcessor implements ProcessorInterface {
 
         TabularMetaData tabularMetaData = (TabularMetaData) metaData;
 
-        DataFrame df = sqlContext.read()
-                .format("com.databricks.spark.csv")
-                .schema(tabularMetaData.getStructType())
-                .option("header", "" + tabularMetaData.hasHeader())
-                .load(path);
+        DataFrame df;
+        if (tabularMetaData.getCsvProperties().getStringEnclosure() != null) {
+            df = sqlContext.read()
+                    .format("com.databricks.spark.csv")
+                    .schema(tabularMetaData.getStructType())
+                    .option("header", "" + tabularMetaData.hasHeader())
+                    .option("delimiter", tabularMetaData.getCsvProperties().getDelimiter().toString())
+                    .option("quote", tabularMetaData.getCsvProperties().getStringEnclosure().toString())
+                    .load(path);
+        } else {
+            df = sqlContext.read()
+                    .format("com.databricks.spark.csv")
+                    .schema(tabularMetaData.getStructType())
+                    .option("header", "" + tabularMetaData.hasHeader())
+                    .option("delimiter", tabularMetaData.getCsvProperties().getDelimiter().toString())
+                    .load(path);
+        }
 
         return df;
     }
@@ -83,7 +104,7 @@ public class TabularProcessor implements ProcessorInterface {
 
     }
 
-    private TabularMetaData getTabularMetaData(List<CSVRecord> rows, CSVProperties csvProperties) throws IOException {
+    private TabularMetaData getTabularMetaData(List<CSVRecord> rows, CSVProperties csvProperties, Boolean hasHeader) throws IOException {
 
         List<FieldProperties> firstRowFieldPropertiesList = getRow(rows.get(0));       // store the first row separately
         List<FieldProperties> bulkFieldPropertiesList = getRow(rows.get(1));           // initialise from the second row onward
@@ -93,8 +114,13 @@ public class TabularProcessor implements ProcessorInterface {
         }
 
         List<FieldProperties> totalFields;
-        boolean hasHeaderRow = detectHeaderRow(firstRowFieldPropertiesList, bulkFieldPropertiesList);
 
+        boolean hasHeaderRow;
+        if (hasHeader != null) {
+            hasHeaderRow = hasHeader;
+        } else {
+            hasHeaderRow = detectHeaderRow(firstRowFieldPropertiesList, bulkFieldPropertiesList);
+        }
         if (hasHeaderRow) {
 
             totalFields = mergeHeader(bulkFieldPropertiesList, rows.get(0));

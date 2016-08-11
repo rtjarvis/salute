@@ -10,3 +10,7 @@ Salute is able to process any type of file (Text, Image, Video, Audio, etc) and 
 # The technology
 Salute is based on Spark and is able to process huge files.
 
+# Running Salute
+The best way to run Salute is:
+
+<spark_home>/bin/spark-submit target/salute-0.1-SNAPSHOT.jar <input_file> <output_dir>
