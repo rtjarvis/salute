@@ -22,7 +22,7 @@ public class CSVProperties {
     private JavaSparkContext javaSparkContext;
     private CSVFormat csvFormat;
 
-    public CSVProperties(List<String> rows, Character delimiter, Character stringEnclosure) throws IOException {
+    public CSVProperties(List<String> rows, Character delimiter, String stringEnclosure) throws IOException {
         this.javaSparkContext = SparkProvider.getSparkContext();
         getCSVProperties(rows, delimiter, stringEnclosure);
     }
@@ -40,7 +40,7 @@ public class CSVProperties {
         return "Using " + (stringEnclosure == null ? "nothing" : "'" + stringEnclosure + "'") + " as string enclosure and '" + delimiter + "' as the delimiter";
     }
 
-    private void getCSVProperties(List<String> rows, Character suggestedDelimiter, Character suggestedStringEnclosure) throws IOException {
+    private void getCSVProperties(List<String> rows, Character suggestedDelimiter, String suggestedStringEnclosure) throws IOException {
         // detect delimiter
         LOGGER.info("Looking for string enclosure character");
         if (suggestedStringEnclosure == null) {
@@ -49,7 +49,7 @@ public class CSVProperties {
         } else if (suggestedStringEnclosure.equals(LoaderConfig.NO_STRING_ESCAPE)) {
             this.stringEnclosure = null;
         } else {
-            this.stringEnclosure = suggestedStringEnclosure;
+            this.stringEnclosure = suggestedStringEnclosure.charAt(0);
         }
 
         if (suggestedDelimiter == null) {

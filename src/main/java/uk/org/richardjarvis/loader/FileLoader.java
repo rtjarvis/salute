@@ -56,7 +56,8 @@ public class FileLoader {
 
         Options options = LoaderConfig.getOptions();
 
-        CommandLineParser parser = new org.apache.commons.cli.DefaultParser();
+        CommandLineParser parser = new org.apache.commons.cli.BasicParser();
+
 
         try {
             CommandLine cmd = parser.parse(options, args);

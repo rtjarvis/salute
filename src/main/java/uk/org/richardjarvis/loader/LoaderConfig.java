@@ -25,7 +25,7 @@ public class LoaderConfig {
     public static final String NO_STRING_ESCAPE = "none";
 
     Boolean hasHeader = null;
-    Character stringEnclosure = null;
+    String stringEnclosure = null;
     Character delimiter = null;
     String inputPath = null;
     String outputPath = null;
@@ -47,14 +47,14 @@ public class LoaderConfig {
             hasHeader = false;
         if (cmd.hasOption(DELIMITER)) {
             String d = cmd.getOptionValue(DELIMITER);
-            if (d.equals("\\t")) {
-                delimiter = '\t';
-            } else {
-                delimiter = d.charAt(0);
-            }
+            if (d.startsWith("\\"))
+                d = d.substring(1);
+            delimiter = d.charAt(0);
+
         }
         if (cmd.hasOption(STRING_ENCLOSURE))
-            delimiter = cmd.getOptionValue(STRING_ENCLOSURE).charAt(0);
+                stringEnclosure = cmd.getOptionValue(STRING_ENCLOSURE);
+
     }
 
     public Boolean getHasHeader() {
@@ -65,11 +65,11 @@ public class LoaderConfig {
         this.hasHeader = hasHeader;
     }
 
-    public Character getStringEnclosure() {
+    public String getStringEnclosure() {
         return stringEnclosure;
     }
 
-    public void setStringEnclosure(Character stringEnclosure) {
+    public void setStringEnclosure(String stringEnclosure) {
         this.stringEnclosure = stringEnclosure;
     }
 
@@ -128,7 +128,7 @@ public class LoaderConfig {
         options.addOption(HAS_HEADER, false, "definitely has header");
         options.addOption(NO_HEADER, false, "definitely does not have header (bare)");
         options.addOption(DELIMITER, true, "the delimtier character");
-        options.addOption(STRING_ENCLOSURE, true, "the string enclosure character. For none use -" + STRING_ENCLOSURE +" none");
+        options.addOption(STRING_ENCLOSURE, true, "the string enclosure character. For none use -" + STRING_ENCLOSURE + " none");
         return options;
     }
 
