@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class StatisticsDeriver implements TabularDeriveInterface {
 
-    private static final int MAX_CARDINALITY = 10;
+    private static final int MAX_CARDINALITY = 1000000;
 
     /**
      *
@@ -54,7 +54,6 @@ public class StatisticsDeriver implements TabularDeriveInterface {
         for (int fieldIndex = 0; fieldIndex < stringColumnCount; fieldIndex++) {
 
             String column = columns.get(fieldIndex);
-
 
             Row[] result = input.groupBy(column).count().sort(new Column("count").desc()).sort(input.col(column).asc()).head(MAX_CARDINALITY + 1); // I request more than the number of categories. If there are that many returned then there is an "Other category" otherwise there is not
 

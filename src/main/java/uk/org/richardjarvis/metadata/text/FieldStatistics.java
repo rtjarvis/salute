@@ -103,6 +103,13 @@ public class FieldStatistics implements Serializable {
         return frequencyList;
     }
 
+    public List<String> getFrequencyList(int headLength) {
+        if (headLength> frequencyList.size())
+            return frequencyList;
+        else
+                return frequencyList.subList(0,headLength-1);
+    }
+
     public void addToFrequnecyTable(String value, Long count) {
         frequencyList.add(value);
         frequencyTable.put(value, count);

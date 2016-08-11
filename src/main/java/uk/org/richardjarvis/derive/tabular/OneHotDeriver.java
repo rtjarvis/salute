@@ -20,6 +20,8 @@ import java.util.List;
  */
 public class OneHotDeriver implements TabularDeriveInterface {
 
+    private static final int maxColumns=10;
+
     /**
      *
      * @param input the input dataframe
@@ -52,7 +54,7 @@ public class OneHotDeriver implements TabularDeriveInterface {
 
             for (String stringColumn : stringColumns) {
 
-                List<String> oneHotCols = statistics.get(stringColumn).getFrequencyList();
+                List<String> oneHotCols = statistics.get(stringColumn).getFrequencyList(maxColumns);
 
                 String value = row.getString(row.fieldIndex(stringColumn));
 
@@ -97,7 +99,7 @@ public class OneHotDeriver implements TabularDeriveInterface {
 
         List<StructField> fields = new ArrayList<>();
 
-        for (String columnName : statistics.getFrequencyList()) {
+        for (String columnName : statistics.getFrequencyList(maxColumns)) {
             Metadata metadata = DataFrameUtils.getMetadata(FieldMeaning.MeaningType.ONE_HOT, null);
             fields.add(new StructField(fieldName + "=" + columnName, DataTypes.IntegerType, false, metadata));
         }
